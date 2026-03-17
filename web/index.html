@@ -1,239 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>SIMEMS Portal</title>
+<title>SIMEM Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-:root{
-  --bg:#f1f5f9;--sur:#fff;--raised:#f8fafc;--hov:#f1f5f9;
-  --bdr:#e2e8f0;--bdrhi:#cbd5e1;
-  --acc:#2563eb;--acc-dim:rgba(37,99,235,.08);--acc-bg:#eff6ff;
-  --grn:#16a34a;--grn-dim:rgba(22,163,74,.1);
-  --amb:#d97706;--amb-dim:rgba(215,119,6,.1);
-  --red:#dc2626;--red-dim:rgba(220,38,38,.1);
-  --blu:#0284c7;--blu-dim:rgba(2,132,199,.1);
-  --pur:#7c3aed;--pur-dim:rgba(124,58,237,.1);
-  --tp:#0f172a;--ts:#64748b;--td:#94a3b8;
-  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
-  --r:8px;--r-lg:12px;--sb:240px;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);background:var(--bg);color:var(--tp);font-size:14px;min-height:100vh}
-
-/* ── Login ── */
-#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%)}
-.login-card{background:var(--sur);border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.3)}
-.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
-.login-logo .logo-box{width:44px;height:44px;background:var(--acc);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;font-family:var(--mono);flex-shrink:0}
-.login-logo .logo-text{font-size:18px;font-weight:600}
-.login-logo .logo-sub{font-size:12px;color:var(--ts)}
-.login-title{font-size:20px;font-weight:600;margin-bottom:6px}
-.login-sub{font-size:13px;color:var(--ts);margin-bottom:24px}
-.lf{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
-.lf label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ts)}
-.lf input{padding:10px 12px;border:1px solid var(--bdr);border-radius:var(--r);font-size:14px;font-family:var(--sans);color:var(--tp);transition:border .15s,box-shadow .15s}
-.lf input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
-.login-err{font-size:12px;color:var(--red);background:var(--red-dim);padding:8px 12px;border-radius:6px;margin-bottom:12px;display:none}
-.login-forgot{font-size:12px;color:var(--acc);cursor:pointer;text-align:right;margin-top:-8px;margin-bottom:16px}
-.login-forgot:hover{text-decoration:underline}
-.btn-full{width:100%;padding:11px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:500;cursor:pointer;transition:background .15s}
-.btn-full:hover{background:#1d4ed8}
-.login-footer{font-size:11px;color:var(--td);text-align:center;margin-top:20px}
-
-/* ── App shell ── */
-#app{display:none;min-height:100vh}
-.layout{display:flex;min-height:100vh}
-
-/* ── Sidebar ── */
-.sidebar{width:var(--sb);background:#0f172a;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
-.sb-brand{padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
-.sb-logo{width:34px;height:34px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;font-family:var(--mono);flex-shrink:0}
-.sb-brand .t1{font-size:14px;font-weight:600;color:#f8fafc}
-.sb-brand .t2{font-size:10px;color:#64748b;font-family:var(--mono)}
-.sb-nav{padding:10px 8px;flex:1}
-.sb-sect{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#475569;padding:14px 10px 5px}
-.ni{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:7px;color:#94a3b8;cursor:pointer;font-size:13px;font-weight:500;transition:background .15s,color .15s;user-select:none;margin-bottom:1px}
-.ni:hover{background:rgba(255,255,255,.06);color:#e2e8f0}
-.ni.active{background:rgba(37,99,235,.25);color:#93c5fd}
-.ni svg{width:15px;height:15px;flex-shrink:0}
-.ni-count{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:99px;font-family:var(--mono);display:none;font-weight:600}
-.sb-foot{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)}
-.sb-user{display:flex;align-items:center;gap:9px}
-.sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;flex-shrink:0}
-.sb-uname{font-size:12px;color:#94a3b8;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sb-logout{color:#64748b;cursor:pointer;font-size:11px;white-space:nowrap}
-.sb-logout:hover{color:#f87171}
-
-/* ── Main ── */
-.main{margin-left:var(--sb);flex:1;display:flex;flex-direction:column;min-height:100vh}
-.topbar{height:54px;background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:50}
-.tb-title{font-size:15px;font-weight:600;flex:1}
-.tb-sub{font-size:12px;color:var(--ts)}
-.content{padding:24px;flex:1}
-
-/* ── Cards ── */
-.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r-lg);padding:20px}
-.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.card-title{font-size:13px;font-weight:600;color:var(--tp)}
-.card-sub{font-size:11px;color:var(--ts);margin-top:2px}
-
-/* ── Stat cards ── */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.stat-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r-lg);padding:18px;display:flex;align-items:center;gap:14px}
-.stat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.si-blue{background:var(--acc-bg)}
-.si-green{background:var(--grn-dim)}
-.si-red{background:var(--red-dim)}
-.si-amber{background:var(--amb-dim)}
-.si-pur{background:var(--pur-dim)}
-.stat-val{font-size:26px;font-weight:700;font-family:var(--mono);line-height:1;margin-bottom:3px}
-.stat-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ts)}
-.stat-delta{font-size:11px;color:var(--grn);margin-top:2px}
-
-/* ── Table ── */
-.tbl-wrap{border-radius:var(--r-lg);border:1px solid var(--bdr);overflow:hidden;background:var(--sur)}
-.tbl-toolbar{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bdr);background:var(--raised)}
-table{width:100%;border-collapse:collapse}
-th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ts);text-align:left;padding:10px 16px;border-bottom:2px solid var(--bdr);background:var(--raised);white-space:nowrap}
-td{padding:11px 16px;border-bottom:1px solid var(--bdr);font-size:13px;vertical-align:middle}
-tbody tr:last-child td{border:none}
-tbody tr:hover td{background:var(--raised)}
-.mono{font-family:var(--mono)}
-.td-dim{color:var(--ts)}
-
-/* ── Badges ── */
-.badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;display:inline-block;white-space:nowrap}
-.b-high{background:var(--amb-dim);color:var(--amb)}
-.b-low{background:var(--blu-dim);color:var(--blu)}
-.b-gas{background:var(--red-dim);color:var(--red)}
-.b-active{background:var(--red-dim);color:var(--red)}
-.b-ok{background:var(--grn-dim);color:var(--grn)}
-.b-pending{background:var(--amb-dim);color:var(--amb)}
-.b-acked{background:var(--blu-dim);color:var(--blu)}
-.b-resolved{background:var(--grn-dim);color:var(--grn)}
-.b-online{background:var(--grn-dim);color:var(--grn)}
-.b-offline{background:var(--red-dim);color:var(--red)}
-.b-info{background:var(--acc-dim);color:var(--acc)}
-
-/* ── Buttons ── */
-.btn{padding:8px 16px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-family:var(--sans)}
-.btn-acc{background:var(--acc);color:#fff}.btn-acc:hover{background:#1d4ed8}
-.btn-grn{background:var(--grn);color:#fff}.btn-grn:hover{background:#15803d}
-.btn-out{background:none;border:1px solid var(--bdr);color:var(--ts)}.btn-out:hover{border-color:var(--bdrhi);color:var(--tp)}
-.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#b91c1c}
-.btn-ghost{background:none;border:none;color:var(--ts);cursor:pointer;padding:4px 8px;border-radius:5px;font-size:12px}
-.btn-ghost:hover{background:var(--hov);color:var(--tp)}
-.btn-sm{padding:5px 10px;font-size:11px}
-
-/* ── Form ── */
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.fgrid.g3{grid-template-columns:1fr 1fr 1fr}
-.fgrid.g1{grid-template-columns:1fr}
-.ff{display:flex;flex-direction:column;gap:5px}
-.ff.s2{grid-column:span 2}
-.ff label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--ts)}
-.ff input,.ff select,.ff textarea{padding:8px 11px;border:1px solid var(--bdr);border-radius:var(--r);font-size:13px;font-family:var(--sans);color:var(--tp);background:var(--sur);transition:border .15s,box-shadow .15s;width:100%}
-.ff input:focus,.ff select:focus,.ff textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-.ff textarea{resize:vertical;min-height:80px}
-.ff .hint{font-size:11px;color:var(--td)}
-.frow{display:flex;align-items:center;gap:8px}
-.frow input[type=checkbox]{width:16px;height:16px;accent-color:var(--acc);cursor:pointer}
-.frow label{font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer;color:var(--ts)}
-
-/* ── Filter bar ── */
-.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.filters select,.filters input{padding:6px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;color:var(--tp);background:var(--sur);height:34px;font-family:var(--sans)}
-.filters select:focus,.filters input:focus{outline:none;border-color:var(--acc)}
-
-/* ── Pagination ── */
-.pager{display:flex;align-items:center;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--bdr);font-size:12px;color:var(--ts)}
-.pager button{padding:4px 10px;border:1px solid var(--bdr);border-radius:5px;background:var(--sur);font-size:12px;cursor:pointer;color:var(--ts)}
-.pager button:hover:not(:disabled){border-color:var(--acc);color:var(--acc)}
-.pager button:disabled{opacity:.4;cursor:default}
-
-/* ── Empty state ── */
-.empty{text-align:center;padding:56px 24px;color:var(--td)}
-.empty .ico{font-size:36px;margin-bottom:12px;opacity:.5}
-.empty .lbl{font-size:14px;font-weight:600;color:var(--ts);margin-bottom:6px}
-.empty .sub{font-size:12px;line-height:1.6}
-
-/* ── Modal ── */
-.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-bg.open{display:flex}
-.modal{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r-lg);width:100%;max-width:500px;box-shadow:0 24px 48px rgba(0,0,0,.18);max-height:90vh;display:flex;flex-direction:column}
-.modal.wide{max-width:700px}
-.modal-hd{padding:20px 24px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
-.modal-title{font-size:15px;font-weight:600}
-.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ts);line-height:1;padding:0 2px}
-.modal-close:hover{color:var(--red)}
-.modal-body{padding:20px 24px;overflow-y:auto;flex:1}
-.modal-ft{padding:14px 24px;border-top:1px solid var(--bdr);display:flex;gap:10px;justify-content:flex-end}
-
-/* ── Toast ── */
-#toast-container{position:fixed;bottom:24px;right:24px;z-index:600;display:flex;flex-direction:column;gap:8px}
-.toast{padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:toast-in .2s ease;display:flex;align-items:center;gap:8px;min-width:240px}
-.toast-info{background:#1e293b;color:#f1f5f9}
-.toast-ok{background:var(--grn);color:#fff}
-.toast-err{background:var(--red);color:#fff}
-.toast-warn{background:var(--amb);color:#fff}
-@keyframes toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── Page sections ── */
-.page{display:none}.page.active{display:block}
-.page-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.page-title{font-size:17px;font-weight:600}
-.page-sub{font-size:12px;color:var(--ts);margin-top:3px}
-.section-gap{margin-bottom:20px}
-
-/* ── Charts ── */
-.chart-wrap{position:relative;height:220px}
-
-/* ── Settings ── */
-.settings-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px}
-.settings-hd{padding:14px 20px;background:var(--raised);border-bottom:1px solid var(--bdr);font-size:13px;font-weight:600}
-.settings-body{padding:20px}
-
-/* ── Alerts banner ── */
-.alert-banner{background:var(--red-dim);border:1px solid rgba(220,38,38,.2);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:20px;font-size:13px;color:var(--red);display:none}
-.alert-banner.show{display:flex}
-
-/* ── Loading ── */
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--bdr);border-top-color:var(--acc);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-row td{text-align:center;padding:32px;color:var(--ts)}
-
-/* ── Responsive ── */
-@media(max-width:900px){
-  :root{--sb:0px}
-  .sidebar{display:none}
-  .stats-grid{grid-template-columns:1fr 1fr}
-}
-@media(max-width:600px){
-  .stats-grid{grid-template-columns:1fr}
-  .fgrid{grid-template-columns:1fr}
-  .ff.s2{grid-column:auto}
-}
-
-/* ── Detail row ── */
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.detail-item{background:var(--raised);border-radius:var(--r);padding:10px 14px}
-.detail-item .key{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ts);margin-bottom:3px}
-.detail-item .val{font-size:13px;font-weight:500;font-family:var(--mono)}
-
-/* ── Timeline dot ── */
-.timeline{display:flex;flex-direction:column;gap:0}
-.tl-item{display:flex;gap:14px;padding-bottom:18px;position:relative}
-.tl-item::before{content:'';position:absolute;left:7px;top:16px;bottom:0;width:2px;background:var(--bdr)}
-.tl-item:last-child::before{display:none}
-.tl-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;border:2px solid var(--sur);margin-top:1px;z-index:1}
-.tl-dot.red{background:var(--red)}.tl-dot.grn{background:var(--grn)}.tl-dot.amb{background:var(--amb)}.tl-dot.blu{background:var(--acc)}
-.tl-body{flex:1;min-width:0}
-.tl-title{font-size:13px;font-weight:500}
-.tl-meta{font-size:11px;color:var(--ts);margin-top:2px}
-</style>
+<script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
@@ -243,7 +17,7 @@ tbody tr:hover td{background:var(--raised)}
     <div class="login-logo">
       <div class="logo-box">IS</div>
       <div>
-        <div class="logo-text">ISMS Portal</div>
+        <div class="logo-text">SIMEM Portal</div>
         <div class="logo-sub">Industrial Safety Management System</div>
       </div>
     </div>
@@ -266,7 +40,7 @@ tbody tr:hover td{background:var(--raised)}
       <div class="sb-brand">
         <div class="sb-logo">IS</div>
         <div>
-          <div class="t1">ISMS Portal</div>
+          <div class="t1">SIMEM Portal</div>
           <div class="t2" id="sb-org">Loading...</div>
         </div>
       </div>
@@ -294,6 +68,10 @@ tbody tr:hover td{background:var(--raised)}
         <div class="ni" onclick="navTo('readings',this)" data-page="readings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Readings
+        </div>
+        <div class="ni" onclick="navTo('topology',this)" data-page="topology">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/></svg>
+          Topology
         </div>
         <div class="ni" onclick="navTo('reports',this)" data-page="reports">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -323,10 +101,12 @@ tbody tr:hover td{background:var(--raised)}
       <div class="topbar">
         <div>
           <div class="tb-title" id="tb-title">Dashboard</div>
-          <div class="tb-sub" id="tb-sub">Industrial Safety Management System</div>
+          <div class="tb-sub" id="tb-sub">Safety Industrial Monitoring & Emergency Management</div>
         </div>
         <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
           <div style="font-size:11px;color:var(--ts);font-family:var(--mono)" id="tb-time"></div>
+          <div class="ws-dot" id="ws-dot" title="Real-time: connecting…"></div>
+          <button class="btn-theme" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode"><i data-lucide="moon"></i></button>
           <button class="btn btn-acc btn-sm" onclick="syncNow()">Refresh</button>
         </div>
       </div>
@@ -340,15 +120,30 @@ tbody tr:hover td{background:var(--raised)}
             <span id="alert-banner-text"></span>
             <a style="margin-left:auto;cursor:pointer;color:inherit;font-weight:600;text-decoration:underline" onclick="navTo('alerts')">View alerts</a>
           </div>
-          <div class="stats-grid">
-            <div class="stat-card"><div class="stat-icon si-blue">&#127760;</div><div><div class="stat-val" id="s-records">—</div><div class="stat-lbl">Sync Records (24h)</div></div></div>
-            <div class="stat-card"><div class="stat-icon si-green">&#9679;</div><div><div class="stat-val" id="s-nodes">—</div><div class="stat-lbl">Active Nodes</div></div></div>
-            <div class="stat-card"><div class="stat-icon si-red">&#9888;</div><div><div class="stat-val" id="s-alerts">—</div><div class="stat-lbl">Alerts (24h)</div></div></div>
-            <div class="stat-card"><div class="stat-icon si-amber">&#128203;</div><div><div class="stat-val" id="s-incidents">—</div><div class="stat-lbl">Open Incidents</div></div></div>
+
+          <!-- KPI row -->
+          <div class="stats-grid-6" id="kpi-row">
+            <div class="kpi-card"><div class="kpi-val" id="s-records">—</div><div class="kpi-lbl">Records (24h)</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-records" style="width:0;background:var(--acc)"></div></div></div>
+            <div class="kpi-card"><div class="kpi-val" id="s-nodes">—</div><div class="kpi-lbl">Active Nodes</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-nodes" style="width:0;background:var(--grn)"></div></div></div>
+            <div class="kpi-card"><div class="kpi-val" id="s-centers">—</div><div class="kpi-lbl">Centers Online</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-centers" style="width:0;background:var(--grn)"></div></div></div>
+            <div class="kpi-card"><div class="kpi-val" id="s-alerts">—</div><div class="kpi-lbl">Active Alerts</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-alerts" style="width:0;background:var(--red)"></div></div></div>
+            <div class="kpi-card"><div class="kpi-val" id="s-incidents">—</div><div class="kpi-lbl">Open Incidents</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-incidents" style="width:0;background:var(--amb)"></div></div></div>
+            <div class="kpi-card"><div class="kpi-val" id="s-syncrate">—</div><div class="kpi-lbl">Syncs / Hour</div><div class="kpi-sub" id="s-syncrate-sub"></div></div>
           </div>
+
+          <!-- Live sensor tiles -->
+          <div class="card section-gap">
+            <div class="card-hd">
+              <div><div class="card-title">Live Sensor Status</div><div class="card-sub" id="dash-live-ts">Latest reading from all connected nodes</div></div>
+              <span class="spinner" id="dash-sensor-spinner" style="display:none"></span>
+            </div>
+            <div class="sensor-grid" id="dash-sensor-tiles"><div style="color:var(--td);font-size:12px;padding:8px 0">Loading sensors…</div></div>
+          </div>
+
+          <!-- Charts row -->
           <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px">
             <div class="card">
-              <div class="card-hd"><div><div class="card-title">Alert Activity (last 7 days)</div></div></div>
+              <div class="card-hd"><div class="card-title">Alert Activity — last 7 days</div></div>
               <div class="chart-wrap"><canvas id="chart-alerts"></canvas></div>
             </div>
             <div class="card">
@@ -356,13 +151,17 @@ tbody tr:hover td{background:var(--raised)}
               <div class="chart-wrap"><canvas id="chart-types"></canvas></div>
             </div>
           </div>
-          <div class="card">
-            <div class="card-hd">
-              <div class="card-title">Recent Activity</div>
-              <button class="btn btn-out btn-sm" onclick="navTo('readings')">View all</button>
+
+          <!-- Bottom row -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="card">
+              <div class="card-hd"><div class="card-title">Active Alerts</div><button class="btn btn-out btn-sm" onclick="navTo('alerts')">View all →</button></div>
+              <div class="la-list" id="dash-live-alerts"><div style="color:var(--td);font-size:12px;padding:16px 0 8px">No active alerts</div></div>
             </div>
-            <div class="tbl-wrap" style="border:none">
-              <table id="tbl-recent"><thead><tr><th>Time</th><th>Center</th><th>Node</th><th>Sensor</th><th>Value</th><th>State</th></tr></thead><tbody id="tbody-recent"><tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading...</td></tr></tbody></table>
+            <div class="card">
+              <div class="card-hd"><div class="card-title">Recent Syncs</div><button class="btn btn-out btn-sm" onclick="navTo('readings')">Browse →</button></div>
+              <table><thead><tr><th>Time</th><th>Node</th><th>Sensors</th><th>State</th></tr></thead>
+              <tbody id="tbody-recent"><tr class="loading-row"><td colspan="4"><span class="spinner"></span></td></tr></tbody></table>
             </div>
           </div>
         </div>
@@ -462,40 +261,117 @@ tbody tr:hover td{background:var(--raised)}
         <!-- ── Readings ── -->
         <div class="page" id="page-readings">
           <div class="page-hd">
-            <div><div class="page-title">Sensor Readings</div><div class="page-sub">Browse all historical sensor data</div></div>
-            <button class="btn btn-out btn-sm" onclick="exportReadingsCSV()">Export CSV</button>
+            <div><div class="page-title">Sensor Readings</div><div class="page-sub">Central Node → Sensor Node → Readings</div></div>
+            <button class="btn btn-out btn-sm" id="rd-export-btn" onclick="exportReadingsCSV()" style="display:none">Export CSV</button>
           </div>
-          <div class="card section-gap">
-            <div class="card-hd"><div class="card-title">Trend Chart</div>
-              <div class="filters" style="gap:8px">
-                <select id="chart-node" onchange="renderReadingChart()"><option value="">All Nodes</option></select>
-                <select id="chart-sensor" onchange="renderReadingChart()"><option value="">All Sensors</option></select>
+
+          <!-- Breadcrumb -->
+          <div id="rd-breadcrumb" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ts);margin-bottom:16px;flex-wrap:wrap"></div>
+
+          <!-- Level 1 — Central Nodes list -->
+          <div id="rd-level-centers">
+            <div class="tbl-wrap">
+              <div class="tbl-toolbar">
+                <span style="font-weight:600;font-size:13px">Central Nodes</span>
+                <div style="margin-left:auto;font-size:12px;color:var(--ts)" id="rd-centers-count"></div>
+              </div>
+              <table><thead><tr><th>Center ID</th><th>Factory / Building / Room</th><th>Last Sync</th><th>Sensor Nodes</th><th>Records</th><th></th></tr></thead>
+              <tbody id="tbody-rd-centers"><tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading...</td></tr></tbody></table>
+              <div class="pager" id="pager-rd-centers"></div>
+            </div>
+          </div>
+
+          <!-- Level 2 — Center detail + its sensor nodes -->
+          <div id="rd-level-center" style="display:none">
+            <div class="card" id="rd-center-detail-card"></div>
+            <div class="tbl-wrap" style="margin-top:16px">
+              <div class="tbl-toolbar">
+                <span style="font-weight:600;font-size:13px">Sensor Nodes</span>
+                <div style="margin-left:auto;font-size:12px;color:var(--ts)" id="rd-nodes-count"></div>
+              </div>
+              <table><thead><tr><th>Node ID</th><th>Hostname</th><th>Last Seen</th><th>Sensors</th><th>Status</th><th></th></tr></thead>
+              <tbody id="tbody-rd-nodes"><tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading...</td></tr></tbody></table>
+              <div class="pager" id="pager-rd-nodes"></div>
+            </div>
+          </div>
+
+          <!-- Level 3 — Node detail + sensor readings -->
+          <div id="rd-level-node" style="display:none">
+            <div class="card" id="rd-node-detail-card"></div>
+
+            <!-- Time range selector -->
+            <div class="card" style="margin-top:16px;padding:14px 18px">
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                <span style="font-size:12px;font-weight:600;color:var(--ts)">Time Range</span>
+                <div class="tr-bar">
+                  <button class="tr-btn" onclick="rdSetRange(3600)">1H</button>
+                  <button class="tr-btn" onclick="rdSetRange(21600)">6H</button>
+                  <button class="tr-btn active" onclick="rdSetRange(86400)">24H</button>
+                  <button class="tr-btn" onclick="rdSetRange(604800)">7D</button>
+                  <button class="tr-btn" onclick="rdSetRange(2592000)">30D</button>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <input type="datetime-local" id="rd-custom-from" style="font-size:11px;padding:4px 8px;border:1px solid var(--bdr);border-radius:5px;background:var(--sur);color:var(--tp)">
+                  <span style="font-size:11px;color:var(--td)">to</span>
+                  <input type="datetime-local" id="rd-custom-to" style="font-size:11px;padding:4px 8px;border:1px solid var(--bdr);border-radius:5px;background:var(--sur);color:var(--tp)">
+                  <button class="btn btn-out btn-sm" onclick="rdApplyCustomRange()">Apply</button>
+                </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+                  <label style="font-size:11px;color:var(--ts);display:flex;align-items:center;gap:5px;cursor:pointer">
+                    <input type="checkbox" id="rd-autorefresh" style="accent-color:var(--acc)" onchange="rdToggleAutoRefresh()"> Auto-refresh (30s)
+                  </label>
+                </div>
               </div>
             </div>
-            <div class="chart-wrap"><canvas id="chart-readings"></canvas></div>
-          </div>
-          <div class="tbl-wrap">
-            <div class="tbl-toolbar">
-              <div class="filters">
-                <input type="text" id="rd-search" placeholder="Search sensor name..." oninput="loadReadings()" style="width:180px">
-                <select id="rd-filter-type" onchange="loadReadings()">
-                  <option value="">All Types</option>
-                  <option value="temp">Temperature</option>
-                  <option value="current">Current</option>
-                  <option value="mq2">MQ-2 Gas</option>
-                  <option value="mq135">MQ-135 Air</option>
-                  <option value="particle">Particle</option>
-                  <option value="vib">Vibration</option>
-                </select>
-                <input type="date" id="rd-from" onchange="loadReadings()">
-                <input type="date" id="rd-to" onchange="loadReadings()">
-                <button class="btn btn-out btn-sm" onclick="clearReadingFilters()">Clear</button>
-              </div>
-              <div style="margin-left:auto;font-size:12px;color:var(--ts)" id="rd-count"></div>
+
+            <!-- Sensor summary cards -->
+            <div class="card" style="margin-top:16px">
+              <div class="card-hd"><div class="card-title">Sensor Summary</div><div class="card-sub" id="sc-time-label"></div></div>
+              <div class="sc-grid" id="sc-cards"><div style="color:var(--td);font-size:12px;padding:8px 0">Loading…</div></div>
             </div>
-            <table><thead><tr><th>Timestamp</th><th>Center</th><th>Node</th><th>Sensor</th><th>Type</th><th>Value</th><th>Alert State</th></tr></thead>
-            <tbody id="tbody-readings"><tr class="loading-row"><td colspan="7"><span class="spinner"></span> Loading...</td></tr></tbody></table>
-            <div class="pager" id="pager-readings"></div>
+
+            <div class="card" style="margin-top:16px">
+              <div class="card-hd">
+                <div class="card-title">Sensor Trends</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap" id="rd-sensor-toggles"></div>
+                <select id="chart-sensor-filter" onchange="renderDrillChart()" style="font-size:12px;padding:4px 8px;border:1px solid var(--bdr);border-radius:var(--r);background:var(--sur);color:var(--tp);display:none"><option value="">All Sensors</option></select>
+              </div>
+              <div class="chart-wrap" style="height:260px"><canvas id="chart-readings"></canvas></div>
+            </div>
+            <div class="tbl-wrap" style="margin-top:16px">
+              <div class="tbl-toolbar">
+                <div class="filters">
+                  <input type="text" id="rd-search" placeholder="Search sensor..." oninput="rdSearchChange()" style="width:160px">
+                  <select id="rd-filter-type" onchange="rdSearchChange()">
+                    <option value="">All Types</option>
+                    <option value="temp">Temperature</option>
+                    <option value="current">Current</option>
+                    <option value="mq2">MQ-2 Gas</option>
+                    <option value="mq135">MQ-135 Air</option>
+                    <option value="particle">Particle</option>
+                    <option value="vib">Vibration</option>
+                  </select>
+                  <input type="date" id="rd-from" onchange="rdSearchChange()">
+                  <input type="date" id="rd-to"   onchange="rdSearchChange()">
+                  <button class="btn btn-out btn-sm" onclick="clearReadingFilters()">Clear</button>
+                </div>
+                <div style="margin-left:auto;font-size:12px;color:var(--ts)" id="rd-count"></div>
+              </div>
+              <table><thead><tr><th>Timestamp</th><th>Sensor</th><th>Type</th><th>Value</th><th>Alert State</th></tr></thead>
+              <tbody id="tbody-readings"><tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading...</td></tr></tbody></table>
+              <div class="pager" id="pager-readings"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Topology ── -->
+        <div class="page" id="page-topology">
+          <div class="page-hd">
+            <div><div class="page-title">Network Topology</div><div class="page-sub">Live sensor health across all center nodes and sensor nodes</div></div>
+            <button class="btn btn-out btn-sm" onclick="loadTopology()">↻ Refresh</button>
+          </div>
+          <div class="topo-grid" id="topo-grid">
+            <div style="padding:40px;text-align:center;color:var(--ts)"><span class="spinner"></span> Loading…</div>
           </div>
         </div>
 
@@ -531,7 +407,7 @@ tbody tr:hover td{background:var(--raised)}
           <div class="card">
             <div class="card-hd"><div class="card-title">Saved Reports</div></div>
             <div id="saved-reports-list">
-              <div class="empty"><div class="ico">&#128196;</div><div class="lbl">No saved reports</div><div class="sub">Generated reports will appear here</div></div>
+              <div class="empty"><div class="ico"><i data-lucide="file-text"></i></div><div class="lbl">No saved reports</div><div class="sub">Generated reports will appear here</div></div>
             </div>
           </div>
         </div>
@@ -627,7 +503,7 @@ tbody tr:hover td{background:var(--raised)}
 <!-- Acknowledge Alert -->
 <div class="modal-bg" id="modal-ack">
   <div class="modal">
-    <div class="modal-hd"><div class="modal-title" id="modal-ack-title">Acknowledge Alert</div><button class="modal-close" onclick="closeModal('modal-ack')">&times;</button></div>
+    <div class="modal-hd"><div class="modal-title" id="modal-ack-title">Acknowledge Alert</div><button class="modal-close" onclick="closeModal('modal-ack')"><i data-lucide="x"></i></button></div>
     <div class="modal-body">
       <div class="detail-grid" id="modal-ack-detail" style="margin-bottom:16px"></div>
       <div class="ff"><label>Action</label>
@@ -648,7 +524,7 @@ tbody tr:hover td{background:var(--raised)}
 <!-- Incident Modal -->
 <div class="modal-bg" id="modal-incident">
   <div class="modal wide">
-    <div class="modal-hd"><div class="modal-title" id="modal-inc-title">New Incident</div><button class="modal-close" onclick="closeModal('modal-incident')">&times;</button></div>
+    <div class="modal-hd"><div class="modal-title" id="modal-inc-title">New Incident</div><button class="modal-close" onclick="closeModal('modal-incident')"><i data-lucide="x"></i></button></div>
     <div class="modal-body">
       <div class="fgrid">
         <div class="ff s2"><label>Title</label><input id="inc-title" placeholder="Brief description of the incident"></div>
@@ -684,7 +560,7 @@ tbody tr:hover td{background:var(--raised)}
 <!-- Node Registry Modal -->
 <div class="modal-bg" id="modal-node">
   <div class="modal">
-    <div class="modal-hd"><div class="modal-title" id="modal-node-title">Add Node to Registry</div><button class="modal-close" onclick="closeModal('modal-node')">&times;</button></div>
+    <div class="modal-hd"><div class="modal-title" id="modal-node-title">Add Node to Registry</div><button class="modal-close" onclick="closeModal('modal-node')"><i data-lucide="x"></i></button></div>
     <div class="modal-body">
       <div class="fgrid">
         <div class="ff"><label>Node ID</label><input id="nr-id" placeholder="e.g. n_12345678"></div>
@@ -707,7 +583,7 @@ tbody tr:hover td{background:var(--raised)}
 <!-- Confirm Delete -->
 <div class="modal-bg" id="modal-confirm">
   <div class="modal" style="max-width:380px">
-    <div class="modal-hd"><div class="modal-title">Confirm Delete</div><button class="modal-close" onclick="closeModal('modal-confirm')">&times;</button></div>
+    <div class="modal-hd"><div class="modal-title">Confirm Delete</div><button class="modal-close" onclick="closeModal('modal-confirm')"><i data-lucide="x"></i></button></div>
     <div class="modal-body">
       <p id="confirm-msg" style="font-size:13px;color:var(--ts);line-height:1.6"></p>
     </div>
@@ -723,7 +599,7 @@ tbody tr:hover td{background:var(--raised)}
   <div class="modal" style="max-width:520px">
     <div class="modal-hd">
       <div class="modal-title">Register Center Node</div>
-      <button class="modal-close" onclick="closeModal('modal-add-device')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modal-add-device')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div class="fgrid">
@@ -751,7 +627,7 @@ tbody tr:hover td{background:var(--raised)}
       <!-- Config hint shown after successful save -->
       <div id="dev-save-hint" style="display:none;margin-top:16px;background:var(--raised);border-radius:8px;padding:14px">
         <div style="font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px">
-          <span style="color:#16a34a">&#10003;</span> Device registered — copy these into the center node config
+          <i data-lucide="check" style="color:#16a34a;width:18px;height:18px"></i> Device registered — copy these into the center node config
         </div>
         <div style="display:grid;gap:6px">
           <div style="display:flex;align-items:center;gap:8px">
@@ -779,1138 +655,9 @@ tbody tr:hover td{background:var(--raised)}
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script>
-// ─────────────────────────────────────────────────────────────────────────────
-// App state
-// ─────────────────────────────────────────────────────────────────────────────
-let currentUser = null;
-let db = null;          // MongoDB API helper object
-let activeAlert = null; // currently being acknowledged
-let activeIncId = null; // currently editing incident
-let charts = {};
-let pageState = {
-  alerts: { page: 0, limit: 20 },
-  readings: { page: 0, limit: 25 },
-  nodes: { page: 0, limit: 20 },
-  incidents: { page: 0, limit: 20 }
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Toast
-// ─────────────────────────────────────────────────────────────────────────────
-function toast(msg, type = 'info') {
-  const el = document.createElement('div');
-  el.className = 'toast toast-' + type;
-  el.innerHTML = (type === 'ok' ? '&#10003; ' : type === 'err' ? '&#10007; ' : type === 'warn' ? '&#9888; ' : 'ℹ ') + msg;
-  document.getElementById('toast-container').appendChild(el);
-  setTimeout(() => el.remove(), 4000);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MongoDB — local server proxy (/api/db/:action)
-// ─────────────────────────────────────────────────────────────────────────────
-function getMongoConfig() {
-  return {
-    db: localStorage.getItem('isms_mongo_db') || 'isms_db',
-    cols: {
-      readings:  localStorage.getItem('isms_col_readings')  || 'sensor_readings',
-      acks:      localStorage.getItem('isms_col_acks')      || 'alert_acks',
-      nodes:     localStorage.getItem('isms_col_nodes')     || 'node_registry',
-      incidents: localStorage.getItem('isms_col_incidents') || 'incidents'
-    }
-  };
-}
-
-async function mongoRequest(action, collection, params = {}) {
-  const cfg = getMongoConfig();
-  const res = await fetch(`/api/db/${action}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ database: cfg.db, collection, ...params })
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`DB ${action} failed (${res.status}): ${err.substring(0, 120)}`);
-  }
-  return res.json();
-}
-
-const mongo = {
-  find:      (col, filter = {}, opts = {}) => mongoRequest('find',      col, { filter, ...opts }),
-  findOne:   (col, filter = {})            => mongoRequest('findOne',   col, { filter }),
-  insertOne: (col, document)               => mongoRequest('insertOne', col, { document }),
-  updateOne: (col, filter, update)         => mongoRequest('updateOne', col, { filter, update }),
-  deleteOne: (col, filter)                 => mongoRequest('deleteOne', col, { filter }),
-  aggregate: (col, pipeline)               => mongoRequest('aggregate', col, { pipeline })
-};
-
-function col(name) { return getMongoConfig().cols[name] || name; }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Firebase Auth
-// ─────────────────────────────────────────────────────────────────────────────
-async function initFirebase() {
-  let fbConfig = null;
-  try {
-    const r = await fetch('/api/firebase-config');
-    if (r.ok) fbConfig = await r.json();
-  } catch(e) {}
-  if (!fbConfig || !fbConfig.apiKey) {
-    // No Firebase config — dev/offline mode, skip auth
-    showApp({ email: 'dev@localhost', displayName: 'Developer' });
-    return;
-  }
-  firebase.initializeApp(fbConfig);
-  firebase.auth().onAuthStateChanged(user => {
-    if (user) { currentUser = user; showApp(user); }
-    else      { showLogin(); }
-  });
-}
-
-function showLogin() {
-  document.getElementById('login-page').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-}
-
-function showApp(user) {
-  currentUser = user;
-  document.getElementById('login-page').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  const email = user.email || 'unknown';
-  const name  = user.displayName || email.split('@')[0];
-  document.getElementById('sb-uname').textContent = email;
-  document.getElementById('sb-avatar').textContent = name[0].toUpperCase();
-  document.getElementById('sb-org').textContent = 'Industrial Safety';
-  if (document.getElementById('cfg-email')) document.getElementById('cfg-email').value = email;
-  loadDashboard();
-  setInterval(updateClock, 1000);
-  updateClock();
-}
-
-async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pass  = document.getElementById('login-pass').value;
-  const errEl = document.getElementById('login-err');
-  errEl.style.display = 'none';
-  if (!firebase.apps?.length) {
-    showApp({ email, displayName: email.split('@')[0] });
-    return;
-  }
-  try {
-    await firebase.auth().signInWithEmailAndPassword(email, pass);
-  } catch (e) {
-    errEl.textContent = e.code === 'auth/invalid-credential' ? 'Incorrect email or password.' : e.message;
-    errEl.style.display = 'block';
-  }
-}
-
-async function doResetPassword() {
-  const email = document.getElementById('login-email').value.trim();
-  if (!email) { toast('Enter your email address first', 'warn'); return; }
-  try {
-    await firebase.auth().sendPasswordResetEmail(email);
-    toast('Password reset email sent', 'ok');
-  } catch(e) { toast(e.message, 'err'); }
-}
-
-async function doLogout() {
-  if (window.firebase?.auth) await firebase.auth().signOut();
-  else showLogin();
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Navigation
-// ─────────────────────────────────────────────────────────────────────────────
-const PAGE_TITLES = {
-  dashboard: 'Dashboard',
-  nodes:     'Sensor Nodes',
-  alerts:    'Alerts',
-  incidents: 'Incidents',
-  readings:  'Readings',
-  reports:   'Reports',
-  devices:   'Device Registry',
-  settings:  'Settings'
-};
-
-function navTo(page, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  if (el) el.classList.add('active');
-  else {
-    const ni = document.querySelector(`[data-page="${page}"]`);
-    if (ni) ni.classList.add('active');
-  }
-  document.getElementById('tb-title').textContent = PAGE_TITLES[page] || page;
-  // Lazy-load page data
-  const loaders = {
-    alerts:    loadAlerts,
-    nodes:     loadNodes,
-    readings:  loadReadings,
-    incidents: loadIncidents,
-    devices:   loadDevices,
-    settings:  loadSettings
-  };
-  if (loaders[page]) loaders[page]();
-}
-
-function updateClock() {
-  document.getElementById('tb-time').textContent = new Date().toLocaleTimeString();
-}
-
-function syncNow() {
-  const active = document.querySelector('.page.active');
-  if (active) navTo(active.id.replace('page-',''));
-  else loadDashboard();
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-function fmtTime(epoch) {
-  if (!epoch) return '—';
-  return new Date(epoch * 1000).toLocaleString();
-}
-
-function fmtAgo(epoch) {
-  if (!epoch) return '—';
-  const s = Math.floor(Date.now()/1000 - epoch);
-  if (s < 60) return s + 's ago';
-  if (s < 3600) return Math.floor(s/60) + 'm ago';
-  if (s < 86400) return Math.floor(s/3600) + 'h ago';
-  return Math.floor(s/86400) + 'd ago';
-}
-
-function alertBadge(state) {
-  const map = { high:'b-high', low:'b-low', gas:'b-gas', active:'b-active', ok:'b-ok' };
-  return `<span class="badge ${map[state]||'b-info'}">${(state||'ok').toUpperCase()}</span>`;
-}
-
-function statusBadge(s) {
-  const map = { pending:'b-pending', acknowledged:'b-acked', resolved:'b-resolved', open:'b-pending', investigating:'b-acked', closed:'b-resolved', active:'b-ok', inactive:'b-offline' };
-  return `<span class="badge ${map[s]||'b-info'}">${(s||'—').toUpperCase()}</span>`;
-}
-
-function sevBadge(s) {
-  const map = { critical:'b-active', high:'b-high', medium:'b-acked', low:'b-ok' };
-  return `<span class="badge ${map[s]||'b-info'}">${(s||'—').toUpperCase()}</span>`;
-}
-
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function confirmDelete(msg, callback) {
-  document.getElementById('confirm-msg').textContent = msg;
-  document.getElementById('confirm-btn').onclick = () => { closeModal('modal-confirm'); callback(); };
-  openModal('modal-confirm');
-}
-
-function mkPager(containerId, state, total, loader) {
-  const pages = Math.ceil(total / state.limit);
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  el.innerHTML = `<span>${total} record${total!==1?'s':''}</span>
-    <button onclick="(function(){if(${state.page}>0){state.page--;loader();}}).call(window)" ${state.page===0?'disabled':''}>Prev</button>
-    <span>Page ${state.page+1} of ${pages||1}</span>
-    <button onclick="(function(){if(${state.page}<${pages-1}){state.page++;loader();}}).call(window)" ${state.page>=pages-1?'disabled':''}>Next</button>`;
-  // Rebind buttons properly
-  const btns = el.querySelectorAll('button');
-  btns[0].onclick = () => { if (state.page > 0) { state.page--; loader(); } };
-  btns[1].onclick = () => { if (state.page < pages-1) { state.page++; loader(); } };
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Dashboard
-// ─────────────────────────────────────────────────────────────────────────────
-async function loadDashboard() {
-  const now   = Math.floor(Date.now() / 1000);
-  const day   = now - 86400;
-  const week  = now - 86400 * 7;
-
-  try {
-    // Records in last 24h
-    const recRes = await mongo.aggregate(col('readings'), [
-      { $match: { timestamp: { $gte: day } } },
-      { $count: 'n' }
-    ]);
-    document.getElementById('s-records').textContent = recRes.documents?.[0]?.n || 0;
-  } catch(e) { document.getElementById('s-records').textContent = 'ERR'; }
-
-  try {
-    // Unique nodes in last 24h
-    const nodeRes = await mongo.aggregate(col('readings'), [
-      { $match: { timestamp: { $gte: day } } },
-      { $unwind: '$nodes' },
-      { $group: { _id: '$nodes.nodeId' } },
-      { $count: 'n' }
-    ]);
-    document.getElementById('s-nodes').textContent = nodeRes.documents?.[0]?.n || 0;
-  } catch(e) { document.getElementById('s-nodes').textContent = 'ERR'; }
-
-  try {
-    // Pending alerts
-    const ackRes = await mongo.find(col('acks'), { status: { $in: ['pending','acknowledged'] } }, { limit: 1 });
-    // count via aggregate
-    const cntRes = await mongo.aggregate(col('acks'), [
-      { $match: { status: { $in: ['pending','acknowledged'] } } },
-      { $count: 'n' }
-    ]);
-    const alertCount = cntRes.documents?.[0]?.n || 0;
-    document.getElementById('s-alerts').textContent = alertCount;
-    const el = document.getElementById('s-alerts');
-    el.style.color = alertCount > 0 ? 'var(--red)' : 'var(--grn)';
-    const badge = document.getElementById('nav-alert-count');
-    badge.style.display = alertCount > 0 ? 'inline' : 'none';
-    badge.textContent = alertCount;
-    if (alertCount > 0) {
-      document.getElementById('alert-banner').classList.add('show');
-      document.getElementById('alert-banner-text').textContent = alertCount + ' unresolved alert' + (alertCount>1?'s':'')+' require attention.';
-    }
-  } catch(e) { document.getElementById('s-alerts').textContent = '—'; }
-
-  try {
-    // Open incidents
-    const incRes = await mongo.aggregate(col('incidents'), [
-      { $match: { status: { $in: ['open','investigating'] } } },
-      { $count: 'n' }
-    ]);
-    document.getElementById('s-incidents').textContent = incRes.documents?.[0]?.n || 0;
-  } catch(e) { document.getElementById('s-incidents').textContent = '—'; }
-
-  // Recent activity table
-  try {
-    const recent = await mongo.find(col('readings'), {}, { sort: { timestamp: -1 }, limit: 8 });
-    const tbody = document.getElementById('tbody-recent');
-    const rows = [];
-    (recent.documents || []).forEach(doc => {
-      (doc.nodes || []).forEach(node => {
-        (node.readings || []).slice(0,2).forEach(r => {
-          rows.push(`<tr>
-            <td class="mono td-dim" style="font-size:11px">${fmtTime(doc.timestamp)}</td>
-            <td>${doc.centerId||'—'}</td>
-            <td>${node.hostname||node.nodeId||'—'}</td>
-            <td>${r.name||r.sensorId}</td>
-            <td class="mono">${typeof r.value==='number'?r.value.toFixed(2):r.value||'—'} <span style="font-size:10px;color:var(--td)">${r.unit||''}</span></td>
-            <td>${alertBadge(r.alertState)}</td>
-          </tr>`);
-        });
-      });
-    });
-    tbody.innerHTML = rows.slice(0,10).join('') || `<tr><td colspan="6" class="empty" style="text-align:center;padding:24px;color:var(--ts)">No data yet</td></tr>`;
-  } catch(e) {}
-
-  // Charts
-  await renderAlertTrendChart();
-  await renderAlertTypeChart();
-}
-
-async function renderAlertTrendChart() {
-  try {
-    const days = [];
-    const counts = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
-      days.push(d.toLocaleDateString('en-GB',{weekday:'short'}));
-      const from = Math.floor(d.getTime()/1000);
-      const to   = from + 86400;
-      try {
-        const r = await mongo.aggregate(col('acks'), [
-          { $match: { occurredAt: { $gte: from, $lt: to } } },
-          { $count: 'n' }
-        ]);
-        counts.push(r.documents?.[0]?.n || 0);
-      } catch(e) { counts.push(0); }
-    }
-    const ctx = document.getElementById('chart-alerts').getContext('2d');
-    if (charts.alerts) charts.alerts.destroy();
-    charts.alerts = new Chart(ctx, {
-      type: 'bar',
-      data: { labels: days, datasets: [{ label: 'Alerts', data: counts, backgroundColor: 'rgba(220,38,38,.7)', borderRadius: 4 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-    });
-  } catch(e) {}
-}
-
-async function renderAlertTypeChart() {
-  try {
-    const r = await mongo.aggregate(col('acks'), [
-      { $group: { _id: '$alertState', count: { $sum: 1 } } }
-    ]);
-    const docs = r.documents || [];
-    const ctx = document.getElementById('chart-types').getContext('2d');
-    if (charts.types) charts.types.destroy();
-    charts.types = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: docs.map(d => (d._id||'unknown').toUpperCase()),
-        datasets: [{ data: docs.map(d => d.count), backgroundColor: ['#d97706','#0284c7','#dc2626','#7c3aed','#16a34a'] }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
-    });
-  } catch(e) {}
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Nodes page
-// ─────────────────────────────────────────────────────────────────────────────
-let allNodes = [];
-
-async function loadNodes() {
-  const tbody = document.getElementById('tbody-nodes');
-  tbody.innerHTML = `<tr class="loading-row"><td colspan="7"><span class="spinner"></span> Loading...</td></tr>`;
-  try {
-    // Pull known nodes from registry
-    const regRes = await mongo.find(col('nodes'), {}, { sort: { lastSeen: -1 }, limit: 200 });
-    allNodes = regRes.documents || [];
-
-    // Also discover nodes from recent readings that may not be in registry
-    const recRes = await mongo.aggregate(col('readings'), [
-      { $sort: { timestamp: -1 } },
-      { $limit: 100 },
-      { $unwind: '$nodes' },
-      { $group: { _id: '$nodes.nodeId', hostname: { $first: '$nodes.hostname' }, centerId: { $first: '$centerId' }, lastSeen: { $max: '$timestamp' }, location: { $first: '$location' } } }
-    ]);
-    (recRes.documents || []).forEach(d => {
-      if (!allNodes.find(n => n.nodeId === d._id)) {
-        allNodes.push({ nodeId: d._id, hostname: d.hostname, centerId: d.centerId, lastSeen: d.lastSeen, location: d.location||{}, status: 'active', _discovered: true });
-      }
-    });
-
-    renderNodes(allNodes);
-  } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--red)">${e.message}</td></tr>`;
-  }
-}
-
-function filterNodes() {
-  const q = (document.getElementById('node-search').value||'').toLowerCase();
-  const s = document.getElementById('node-filter-status').value;
-  const filtered = allNodes.filter(n =>
-    (!q || (n.hostname||'').toLowerCase().includes(q) || (n.nodeId||'').includes(q)) &&
-    (!s || n.status === s)
-  );
-  renderNodes(filtered);
-}
-
-function renderNodes(nodes) {
-  const tbody = document.getElementById('tbody-nodes');
-  document.getElementById('node-count').textContent = nodes.length + ' nodes';
-  if (!nodes.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="ico">&#9711;</div><div class="lbl">No nodes found</div></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = nodes.map(n => `<tr>
-    <td class="mono td-dim" style="font-size:11px">${n.nodeId||'—'}</td>
-    <td><strong>${n.hostname||n.nodeId||'Unknown'}</strong></td>
-    <td>${n.centerId||'—'}</td>
-    <td style="font-size:12px">${[n.location?.factory, n.location?.building, n.location?.room].filter(Boolean).join(' / ')||'—'}</td>
-    <td class="mono td-dim" style="font-size:11px">${fmtAgo(n.lastSeen)}</td>
-    <td>${statusBadge(n._discovered?'active':n.status||'active')}</td>
-    <td>
-      ${!n._discovered ? `<button class="btn-ghost btn-sm" onclick="editNode('${n._id?.$oid||n.nodeId}')">Edit</button>
-      <button class="btn-ghost btn-sm" style="color:var(--red)" onclick="deleteNode('${n._id?.$oid}','${n.hostname||n.nodeId}')">Delete</button>` : '<span style="font-size:11px;color:var(--ts)">discovered</span>'}
-    </td>
-  </tr>`).join('');
-}
-
-function openNodeModal(id) {
-  document.getElementById('modal-node-title').textContent = id ? 'Edit Node' : 'Add Node to Registry';
-  ['nr-id','nr-host','nr-center','nr-owner','nr-desc','nr-factory','nr-building','nr-room'].forEach(f => document.getElementById(f).value = '');
-  activeIncId = id || null;
-  openModal('modal-node');
-}
-
-async function submitNodeRegistry() {
-  const doc = {
-    nodeId:   document.getElementById('nr-id').value.trim(),
-    hostname: document.getElementById('nr-host').value.trim(),
-    centerId: document.getElementById('nr-center').value.trim(),
-    owner:    document.getElementById('nr-owner').value.trim(),
-    description: document.getElementById('nr-desc').value.trim(),
-    location: {
-      factory:  document.getElementById('nr-factory').value.trim(),
-      building: document.getElementById('nr-building').value.trim(),
-      room:     document.getElementById('nr-room').value.trim()
-    },
-    status:  'active',
-    addedAt: Math.floor(Date.now()/1000),
-    addedBy: currentUser?.email || 'unknown'
-  };
-  if (!doc.nodeId) { toast('Node ID is required', 'warn'); return; }
-  try {
-    await mongo.insertOne(col('nodes'), doc);
-    toast('Node added to registry', 'ok');
-    closeModal('modal-node');
-    loadNodes();
-  } catch(e) { toast(e.message, 'err'); }
-}
-
-async function deleteNode(id, name) {
-  if (!id) return;
-  confirmDelete(`Delete node "${name}" from the registry? This does not remove its sensor data.`, async () => {
-    try {
-      await mongo.deleteOne(col('nodes'), { _id: { $oid: id } });
-      toast('Node removed from registry', 'ok');
-      loadNodes();
-    } catch(e) { toast(e.message, 'err'); }
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Alerts page
-// ─────────────────────────────────────────────────────────────────────────────
-async function loadAlerts() {
-  pageState.alerts.page = 0;
-  await fetchAlerts();
-}
-
-async function fetchAlerts() {
-  const tbody = document.getElementById('tbody-alerts');
-  tbody.innerHTML = `<tr class="loading-row"><td colspan="8"><span class="spinner"></span> Loading...</td></tr>`;
-  const filter = {};
-  const status = document.getElementById('al-filter-status')?.value;
-  const type   = document.getElementById('al-filter-type')?.value;
-  const from   = document.getElementById('al-filter-from')?.value;
-  const to     = document.getElementById('al-filter-to')?.value;
-  if (status) filter.status = status;
-  if (type)   filter.alertState = type;
-  if (from || to) {
-    filter.occurredAt = {};
-    if (from) filter.occurredAt.$gte = Math.floor(new Date(from).getTime()/1000);
-    if (to)   filter.occurredAt.$lte = Math.floor(new Date(to).getTime()/1000) + 86400;
-  }
-  try {
-    const r = await mongo.find(col('acks'), filter, {
-      sort: { occurredAt: -1 },
-      limit: pageState.alerts.limit,
-      skip:  pageState.alerts.page * pageState.alerts.limit
-    });
-    const cnt = await mongo.aggregate(col('acks'), [{ $match: filter }, { $count: 'n' }]);
-    const total = cnt.documents?.[0]?.n || 0;
-    document.getElementById('alert-count-txt').textContent = total + ' records';
-    const docs = r.documents || [];
-    if (!docs.length) {
-      tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="ico">&#10003;</div><div class="lbl">No alerts found</div><div class="sub">Use "Scan Records" to detect alerts from sensor readings</div></div></td></tr>`;
-    } else {
-      tbody.innerHTML = docs.map(a => `<tr>
-        <td class="mono td-dim" style="font-size:11px">${fmtTime(a.occurredAt)}</td>
-        <td><strong>${a.nodeHostname||a.nodeId||'—'}</strong><div style="font-size:11px;color:var(--ts)">${a.centerId||''}</div></td>
-        <td>${a.sensorName||a.sensorId||'—'}</td>
-        <td>${alertBadge(a.alertState)}</td>
-        <td class="mono">${typeof a.value==='number'?a.value.toFixed(2):a.value||'—'} <span style="font-size:10px;color:var(--td)">${a.unit||''}</span></td>
-        <td>${statusBadge(a.status)}</td>
-        <td style="font-size:12px;color:var(--ts)">${a.acknowledgedBy||'—'}<div style="font-size:10px">${a.acknowledgedAt?fmtAgo(a.acknowledgedAt):''}</div></td>
-        <td>
-          ${a.status!=='resolved'?`<button class="btn btn-sm btn-acc" onclick="openAck('${a._id?.$oid}')">Acknowledge</button> `:''}
-          <button class="btn-ghost btn-sm" style="color:var(--red)" onclick="deleteAlert('${a._id?.$oid}')">Del</button>
-        </td>
-      </tr>`).join('');
-    }
-    mkPager('pager-alerts', pageState.alerts, total, fetchAlerts);
-  } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--red)">${e.message}</td></tr>`;
-  }
-}
-
-function clearAlertFilters() {
-  ['al-filter-status','al-filter-type','al-filter-from','al-filter-to'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  loadAlerts();
-}
-
-function openAck(id) {
-  activeAlert = id;
-  document.getElementById('ack-note').value = '';
-  document.getElementById('ack-action').value = 'acknowledged';
-  openModal('modal-ack');
-}
-
-async function submitAck() {
-  if (!activeAlert) return;
-  const action = document.getElementById('ack-action').value;
-  const note   = document.getElementById('ack-note').value.trim();
-  try {
-    await mongo.updateOne(col('acks'),
-      { _id: { $oid: activeAlert } },
-      { $set: {
-          status:          action,
-          acknowledgedBy:  currentUser?.email || 'unknown',
-          acknowledgedAt:  Math.floor(Date.now()/1000),
-          note
-        }
-      }
-    );
-    toast('Alert ' + action, 'ok');
-    closeModal('modal-ack');
-    activeAlert = null;
-    fetchAlerts();
-    loadDashboard();
-  } catch(e) { toast(e.message, 'err'); }
-}
-
-async function deleteAlert(id) {
-  if (!id) return;
-  confirmDelete('Delete this alert record permanently?', async () => {
-    try {
-      await mongo.deleteOne(col('acks'), { _id: { $oid: id } });
-      toast('Alert deleted', 'ok');
-      fetchAlerts();
-    } catch(e) { toast(e.message, 'err'); }
-  });
-}
-
-// Scan sensor_readings collection and create ack records for unacknowledged alerts
-async function scanForAlerts() {
-  toast('Scanning for alerts...', 'info');
-  try {
-    const r = await mongo.find(col('readings'),
-      { 'nodes.readings.alertState': { $nin: ['ok', null, ''] } },
-      { sort: { timestamp: -1 }, limit: 200 }
-    );
-    let created = 0;
-    for (const doc of r.documents || []) {
-      for (const node of doc.nodes || []) {
-        for (const reading of node.readings || []) {
-          if (!reading.alertState || reading.alertState === 'ok') continue;
-          // Check if already logged
-          const existing = await mongo.findOne(col('acks'), {
-            centerId: doc.centerId,
-            nodeId:   node.nodeId,
-            sensorId: reading.sensorId,
-            occurredAt: doc.timestamp
-          });
-          if (existing.document) continue;
-          await mongo.insertOne(col('acks'), {
-            centerId:      doc.centerId,
-            nodeId:        node.nodeId,
-            nodeHostname:  node.hostname || node.nodeId,
-            sensorId:      reading.sensorId,
-            sensorName:    reading.name || reading.sensorId,
-            sensorType:    reading.type,
-            alertState:    reading.alertState,
-            value:         reading.value,
-            unit:          reading.unit || '',
-            occurredAt:    doc.timestamp,
-            status:        'pending',
-            acknowledgedBy: null,
-            acknowledgedAt: null,
-            note:           '',
-            location:       doc.location || {}
-          });
-          created++;
-        }
-      }
-    }
-    toast(created > 0 ? `${created} new alert records created` : 'No new alerts found', created > 0 ? 'warn' : 'ok');
-    if (created > 0) { fetchAlerts(); loadDashboard(); }
-  } catch(e) { toast(e.message, 'err'); }
-}
-
-function exportAlertsCSV() {
-  const tbody = document.getElementById('tbody-alerts');
-  const rows = [['Time','Center','Node','Sensor','Alert Type','Value','Unit','Status','Acknowledged By']];
-  tbody.querySelectorAll('tr').forEach(tr => {
-    const cells = tr.querySelectorAll('td');
-    if (cells.length < 6) return;
-    rows.push([
-      cells[0].textContent.trim(),
-      cells[1].textContent.trim(),
-      cells[2].textContent.trim(),
-      cells[3].textContent.trim(),
-      cells[4].textContent.trim(),
-      cells[5].textContent.trim(),
-      cells[6].textContent.trim()
-    ]);
-  });
-  downloadCSV(rows, 'isms_alerts_' + new Date().toISOString().slice(0,10) + '.csv');
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Incidents
-// ─────────────────────────────────────────────────────────────────────────────
-async function loadIncidents() {
-  await fetchIncidents();
-}
-
-async function fetchIncidents() {
-  const tbody = document.getElementById('tbody-incidents');
-  tbody.innerHTML = `<tr class="loading-row"><td colspan="8"><span class="spinner"></span> Loading...</td></tr>`;
-  const filter = {};
-  const status   = document.getElementById('inc-filter-status')?.value;
-  const severity = document.getElementById('inc-filter-severity')?.value;
-  if (status)   filter.status   = status;
-  if (severity) filter.severity = severity;
-  try {
-    const r = await mongo.find(col('incidents'), filter, {
-      sort: { raisedAt: -1 },
-      limit: pageState.incidents.limit,
-      skip:  pageState.incidents.page * pageState.incidents.limit
-    });
-    const cnt = await mongo.aggregate(col('incidents'), [{ $match: filter }, { $count: 'n' }]);
-    const total = cnt.documents?.[0]?.n || 0;
-    document.getElementById('inc-count').textContent = total + ' incidents';
-    const docs = r.documents || [];
-    if (!docs.length) {
-      tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="ico">&#128203;</div><div class="lbl">No incidents found</div></div></td></tr>`;
-    } else {
-      tbody.innerHTML = docs.map((inc,i) => {
-        const id = inc._id?.$oid || i;
-        const shortId = id.toString().slice(-6).toUpperCase();
-        return `<tr>
-          <td class="mono" style="font-size:11px">INC-${shortId}</td>
-          <td><strong>${inc.title||'Untitled'}</strong></td>
-          <td>${sevBadge(inc.severity)}</td>
-          <td style="font-size:12px">${inc.node||''}<div style="font-size:11px;color:var(--ts)">${inc.location||''}</div></td>
-          <td class="mono td-dim" style="font-size:11px">${fmtTime(inc.raisedAt)}</td>
-          <td>${statusBadge(inc.status)}</td>
-          <td style="font-size:12px;color:var(--ts)">${inc.assignee||'—'}</td>
-          <td>
-            <button class="btn-ghost btn-sm" onclick="editIncident('${id}')">Edit</button>
-            <button class="btn-ghost btn-sm" style="color:var(--red)" onclick="deleteIncident('${id}','${(inc.title||'').replace(/'/g,'')}')">Del</button>
-          </td>
-        </tr>`;
-      }).join('');
-    }
-    mkPager('pager-incidents', pageState.incidents, total, fetchIncidents);
-  } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--red)">${e.message}</td></tr>`;
-  }
-}
-
-function openIncidentModal() {
-  activeIncId = null;
-  document.getElementById('modal-inc-title').textContent = 'New Incident';
-  ['inc-title','inc-node','inc-location','inc-assignee','inc-desc'].forEach(f => document.getElementById(f).value = '');
-  document.getElementById('inc-severity').value = 'medium';
-  document.getElementById('inc-status').value   = 'open';
-  document.getElementById('inc-due').value = '';
-  openModal('modal-incident');
-}
-
-async function editIncident(id) {
-  try {
-    const r = await mongo.findOne(col('incidents'), { _id: { $oid: id } });
-    const inc = r.document;
-    if (!inc) return;
-    activeIncId = id;
-    document.getElementById('modal-inc-title').textContent = 'Edit Incident';
-    document.getElementById('inc-title').value    = inc.title || '';
-    document.getElementById('inc-severity').value = inc.severity || 'medium';
-    document.getElementById('inc-status').value   = inc.status || 'open';
-    document.getElementById('inc-node').value     = inc.node || '';
-    document.getElementById('inc-location').value = inc.location || '';
-    document.getElementById('inc-assignee').value = inc.assignee || '';
-    document.getElementById('inc-due').value      = inc.dueDate || '';
-    document.getElementById('inc-desc').value     = inc.description || '';
-    openModal('modal-incident');
-  } catch(e) { toast(e.message, 'err'); }
-}
-
-async function submitIncident() {
-  const doc = {
-    title:       document.getElementById('inc-title').value.trim(),
-    severity:    document.getElementById('inc-severity').value,
-    status:      document.getElementById('inc-status').value,
-    node:        document.getElementById('inc-node').value.trim(),
-    location:    document.getElementById('inc-location').value.trim(),
-    assignee:    document.getElementById('inc-assignee').value.trim(),
-    dueDate:     document.getElementById('inc-due').value,
-    description: document.getElementById('inc-desc').value.trim(),
-    updatedAt:   Math.floor(Date.now()/1000),
-    updatedBy:   currentUser?.email || 'unknown'
-  };
-  if (!doc.title) { toast('Title is required', 'warn'); return; }
-  try {
-    if (activeIncId) {
-      await mongo.updateOne(col('incidents'), { _id: { $oid: activeIncId } }, { $set: doc });
-      toast('Incident updated', 'ok');
-    } else {
-      doc.raisedAt  = Math.floor(Date.now()/1000);
-      doc.raisedBy  = currentUser?.email || 'unknown';
-      await mongo.insertOne(col('incidents'), doc);
-      toast('Incident created', 'ok');
-    }
-    closeModal('modal-incident');
-    fetchIncidents();
-    loadDashboard();
-  } catch(e) { toast(e.message, 'err'); }
-}
-
-async function deleteIncident(id, title) {
-  confirmDelete(`Delete incident "${title}"? This cannot be undone.`, async () => {
-    try {
-      await mongo.deleteOne(col('incidents'), { _id: { $oid: id } });
-      toast('Incident deleted', 'ok');
-      fetchIncidents();
-    } catch(e) { toast(e.message, 'err'); }
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Readings page
-// ─────────────────────────────────────────────────────────────────────────────
-async function loadReadings() {
-  pageState.readings.page = 0;
-  await fetchReadings();
-  await renderReadingChart();
-}
-
-async function fetchReadings() {
-  const tbody = document.getElementById('tbody-readings');
-  tbody.innerHTML = `<tr class="loading-row"><td colspan="7"><span class="spinner"></span> Loading...</td></tr>`;
-  const q    = document.getElementById('rd-search')?.value?.toLowerCase() || '';
-  const type = document.getElementById('rd-filter-type')?.value || '';
-  const from = document.getElementById('rd-from')?.value;
-  const to   = document.getElementById('rd-to')?.value;
-
-  const filter = {};
-  if (type)   filter['nodes.readings.type'] = type;
-  if (from || to) {
-    filter.timestamp = {};
-    if (from) filter.timestamp.$gte = Math.floor(new Date(from).getTime()/1000);
-    if (to)   filter.timestamp.$lte = Math.floor(new Date(to).getTime()/1000) + 86400;
-  }
-  try {
-    const r = await mongo.find(col('readings'), filter, {
-      sort: { timestamp: -1 },
-      limit: pageState.readings.limit,
-      skip:  pageState.readings.page * pageState.readings.limit
-    });
-    const rows = [];
-    (r.documents || []).forEach(doc => {
-      (doc.nodes || []).forEach(node => {
-        (node.readings || []).forEach(rd => {
-          if (q && !(rd.name||'').toLowerCase().includes(q) && !(rd.sensorId||'').includes(q)) return;
-          rows.push({ doc, node, rd });
-        });
-      });
-    });
-    document.getElementById('rd-count').textContent = rows.length + ' readings';
-    if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="ico">&#8731;</div><div class="lbl">No readings found</div></div></td></tr>`;
-    } else {
-      tbody.innerHTML = rows.map(({ doc, node, rd }) => `<tr>
-        <td class="mono td-dim" style="font-size:11px">${fmtTime(doc.timestamp)}</td>
-        <td>${doc.centerId||'—'}</td>
-        <td>${node.hostname||node.nodeId||'—'}</td>
-        <td>${rd.name||rd.sensorId||'—'}</td>
-        <td class="mono td-dim" style="font-size:11px">${rd.type||'—'}</td>
-        <td class="mono">${typeof rd.value==='number'?rd.value.toFixed(2):rd.value||'—'} <span style="font-size:10px;color:var(--td)">${rd.unit||''}</span></td>
-        <td>${alertBadge(rd.alertState)}</td>
-      </tr>`).join('');
-    }
-  } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--red)">${e.message}</td></tr>`;
-  }
-}
-
-function clearReadingFilters() {
-  ['rd-search','rd-filter-type','rd-from','rd-to'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  loadReadings();
-}
-
-async function renderReadingChart() {
-  try {
-    const r = await mongo.find(col('readings'), {}, { sort: { timestamp: -1 }, limit: 50 });
-    const labels = [], data = [];
-    (r.documents || []).reverse().forEach(doc => {
-      (doc.nodes || []).forEach(node => {
-        (node.readings || []).slice(0,1).forEach(rd => {
-          if (typeof rd.value === 'number') {
-            labels.push(new Date(doc.timestamp*1000).toLocaleTimeString());
-            data.push(rd.value);
-          }
-        });
-      });
-    });
-    const ctx = document.getElementById('chart-readings').getContext('2d');
-    if (charts.readings) charts.readings.destroy();
-    charts.readings = new Chart(ctx, {
-      type: 'line',
-      data: { labels: labels.slice(-30), datasets: [{ label: 'Value', data: data.slice(-30), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.08)', tension: 0.3, pointRadius: 3, fill: true }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false } } }
-    });
-  } catch(e) {}
-}
-
-function exportReadingsCSV() {
-  const tbody = document.getElementById('tbody-readings');
-  const rows = [['Time','Center','Node','Sensor','Type','Value','Unit','Alert State']];
-  tbody.querySelectorAll('tr').forEach(tr => {
-    const cells = tr.querySelectorAll('td');
-    if (cells.length < 6) return;
-    rows.push(Array.from(cells).map(c => c.textContent.trim()));
-  });
-  downloadCSV(rows, 'isms_readings_' + new Date().toISOString().slice(0,10) + '.csv');
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Reports
-// ─────────────────────────────────────────────────────────────────────────────
-async function generateReport(format) {
-  const from   = document.getElementById('rpt-from').value;
-  const to     = document.getElementById('rpt-to').value;
-  const center = document.getElementById('rpt-center').value.trim();
-  const filter = {};
-  if (from) filter.occurredAt = { ...filter.occurredAt, $gte: Math.floor(new Date(from).getTime()/1000) };
-  if (to)   filter.occurredAt = { ...filter.occurredAt, $lte: Math.floor(new Date(to).getTime()/1000) + 86400 };
-  if (center) filter.centerId = center;
-  try {
-    const r = await mongo.find(col('acks'), filter, { sort: { occurredAt: -1 }, limit: 500 });
-    const docs = r.documents || [];
-    if (format === 'csv') {
-      const rows = [['Time','Center','Node','Sensor','Alert Type','Value','Unit','Status','Acknowledged By','Note']];
-      docs.forEach(a => rows.push([fmtTime(a.occurredAt),a.centerId||'',a.nodeHostname||'',a.sensorName||'',a.alertState||'',a.value||'',a.unit||'',a.status||'',a.acknowledgedBy||'',a.note||'']));
-      downloadCSV(rows, 'isms_alert_report_' + (from||'all') + '.csv');
-    } else {
-      printAlertReport(docs, from, to);
-    }
-  } catch(e) { toast(e.message, 'err'); }
-}
-
-function printAlertReport(docs, from, to) {
-  const w = window.open('', '_blank');
-  const rows = docs.map(a => `<tr>
-    <td>${fmtTime(a.occurredAt)}</td><td>${a.centerId||''}</td><td>${a.nodeHostname||''}</td>
-    <td>${a.sensorName||''}</td><td style="color:${a.alertState==='high'?'#d97706':a.alertState==='gas'||a.alertState==='active'?'#dc2626':'#0284c7'}">${(a.alertState||'').toUpperCase()}</td>
-    <td>${a.value||''} ${a.unit||''}</td><td>${a.status||''}</td><td>${a.acknowledgedBy||''}</td><td>${a.note||''}</td>
-  </tr>`).join('');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ISMS Alert Report</title>
-  <style>body{font-family:Arial,sans-serif;font-size:12px;margin:20px}h1{font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f4f6;font-size:11px;text-transform:uppercase}tr:nth-child(even){background:#f9fafb}@media print{body{margin:0}}</style></head>
-  <body><h1>ISMS Alert Report</h1><p style="color:#666;font-size:11px">Period: ${from||'all'} to ${to||'present'} &nbsp;&nbsp; Generated: ${new Date().toLocaleString()} &nbsp;&nbsp; Records: ${docs.length}</p>
-  <table><thead><tr><th>Time</th><th>Center</th><th>Node</th><th>Sensor</th><th>Alert</th><th>Value</th><th>Status</th><th>Ack By</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table>
-  <script>window.print();<\/script></body></html>`);
-  w.document.close();
-}
-
-async function generateNodeReport() {
-  const from = document.getElementById('rpt2-from').value;
-  const to   = document.getElementById('rpt2-to').value;
-  const filter = {};
-  if (from || to) {
-    filter.timestamp = {};
-    if (from) filter.timestamp.$gte = Math.floor(new Date(from).getTime()/1000);
-    if (to)   filter.timestamp.$lte = Math.floor(new Date(to).getTime()/1000) + 86400;
-  }
-  try {
-    const r = await mongo.aggregate(col('readings'), [
-      { $match: filter },
-      { $unwind: '$nodes' },
-      { $group: { _id: '$nodes.nodeId', hostname: { $first: '$nodes.hostname' }, centerId: { $first: '$centerId' }, records: { $sum: 1 }, lastSeen: { $max: '$timestamp' } } },
-      { $sort: { records: -1 } }
-    ]);
-    const docs = r.documents || [];
-    const rows = docs.map(n => `<tr><td>${n._id}</td><td>${n.hostname||''}</td><td>${n.centerId||''}</td><td>${n.records}</td><td>${fmtTime(n.lastSeen)}</td></tr>`).join('');
-    const w = window.open('','_blank');
-    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ISMS Node Report</title>
-    <style>body{font-family:Arial,sans-serif;font-size:12px;margin:20px}h1{font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f4f6}</style></head>
-    <body><h1>ISMS Node Activity Report</h1><p style="color:#666;font-size:11px">Period: ${from||'all'} to ${to||'present'} — Generated: ${new Date().toLocaleString()}</p>
-    <table><thead><tr><th>Node ID</th><th>Hostname</th><th>Center</th><th>Records</th><th>Last Seen</th></tr></thead><tbody>${rows}</tbody></table>
-    <script>window.print();<\/script></body></html>`);
-    w.document.close();
-  } catch(e) { toast(e.message, 'err'); }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Settings
-// ─────────────────────────────────────────────────────────────────────────────
-function loadSettings() {
-  const cfg = getMongoConfig();
-  document.getElementById('cfg-database').value      = cfg.db || '';
-  document.getElementById('cfg-col-readings').value  = cfg.cols.readings  || '';
-  document.getElementById('cfg-col-acks').value      = cfg.cols.acks      || '';
-  document.getElementById('cfg-col-nodes').value     = cfg.cols.nodes     || '';
-  document.getElementById('cfg-col-incidents').value = cfg.cols.incidents || '';
-}
-
-function saveMongoSettings() {
-  const db = document.getElementById('cfg-database').value.trim();
-  const cR = document.getElementById('cfg-col-readings').value.trim();
-  const cA = document.getElementById('cfg-col-acks').value.trim();
-  const cN = document.getElementById('cfg-col-nodes').value.trim();
-  const cI = document.getElementById('cfg-col-incidents').value.trim();
-  if (db) localStorage.setItem('isms_mongo_db', db);
-  if (cR) localStorage.setItem('isms_col_readings', cR);
-  if (cA) localStorage.setItem('isms_col_acks', cA);
-  if (cN) localStorage.setItem('isms_col_nodes', cN);
-  if (cI) localStorage.setItem('isms_col_incidents', cI);
-  toast('Settings saved', 'ok');
-}
-
-async function testConnection() {
-  const status = document.getElementById('conn-status');
-  status.textContent = 'Testing...';
-  status.style.color = 'var(--ts)';
-  try {
-    const r = await mongo.find(getMongoConfig().cols.readings, {}, { limit: 1 });
-    status.textContent = 'Connection successful — ' + (r.documents?.length ? '1 record found' : 'collection empty');
-    status.style.color = 'var(--grn)';
-    toast('Connected to MongoDB', 'ok');
-  } catch(e) {
-    status.textContent = 'Failed: ' + e.message;
-    status.style.color = 'var(--red)';
-    toast(e.message, 'err');
-  }
-}
-
-async function saveAccount() {
-  const name = document.getElementById('cfg-name').value.trim();
-  const pass = document.getElementById('cfg-pass').value;
-  const pass2 = document.getElementById('cfg-pass2').value;
-  if (!firebase?.auth) { toast('Firebase not configured', 'warn'); return; }
-  if (pass && pass !== pass2) { toast('Passwords do not match', 'warn'); return; }
-  if (pass && pass.length < 6) { toast('Password must be at least 6 characters', 'warn'); return; }
-  try {
-    if (name) await firebase.auth().currentUser.updateProfile({ displayName: name });
-    if (pass) await firebase.auth().currentUser.updatePassword(pass);
-    toast('Account updated', 'ok');
-  } catch(e) { toast(e.message, 'err'); }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CSV export helper
-// ─────────────────────────────────────────────────────────────────────────────
-function downloadCSV(rows, filename) {
-  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = filename;
-  a.click();
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Device Registry
-// ─────────────────────────────────────────────────────────────────────────────
-function escH(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
-function getMasterKey() { return sessionStorage.getItem('isms_master_key') || ''; }
-
-function setMasterKey() {
-  const key = document.getElementById('dev-masterkey-input').value.trim();
-  if (!key) return;
-  sessionStorage.setItem('isms_master_key', key);
-  document.getElementById('dev-keybar').style.display = 'none';
-  loadDevices();
-}
-
-function devHeaders() {
-  return { 'Content-Type': 'application/json', 'X-Master-Key': getMasterKey() };
-}
-
-async function loadDevices() {
-  // Show the sync endpoint URL in the info bar
-  document.getElementById('dev-sync-url').textContent = window.location.origin + '/api/sync';
-
-  try {
-    const res = await fetch('/api/devices', { headers: { 'X-Master-Key': getMasterKey() } });
-    if (res.status === 401) {
-      document.getElementById('dev-keybar').style.display = 'block';
-      document.getElementById('dev-tbody').innerHTML =
-        '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--ts)">Enter master key to view devices.</td></tr>';
-      return;
-    }
-    document.getElementById('dev-keybar').style.display = 'none';
-    const devices = await res.json();
-    renderDevices(devices);
-  } catch (e) {
-    document.getElementById('dev-tbody').innerHTML =
-      '<tr><td colspan="6" style="text-align:center;padding:24px;color:#dc2626">Failed to load devices: ' + e.message + '</td></tr>';
-  }
-}
-
-function renderDevices(devices) {
-  const cnt = document.getElementById('dev-count');
-  if (cnt) cnt.textContent = '— ' + devices.length + ' device' + (devices.length !== 1 ? 's' : '');
-
-  const tbody = document.getElementById('dev-tbody');
-  if (!devices.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--ts)">No devices registered yet. Click <strong>+ Register Device</strong> to add one.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = devices.map(d => {
-    const statusDot = d.active
-      ? '<span style="color:#16a34a;font-weight:600">&#9679; Active</span>'
-      : '<span style="color:var(--ts)">&#9679; Inactive</span>';
-    return `<tr>
-      <td><code style="font-size:12px">${escH(d.deviceCode)}</code></td>
-      <td>${escH(d.name)}</td>
-      <td style="font-size:12px;color:var(--ts)">${fmtTime(d.createdAt)}</td>
-      <td style="font-size:12px;color:var(--ts)">${d.lastSync ? fmtAgo(d.lastSync) + ' ago' : 'Never'}</td>
-      <td style="font-size:12px">${statusDot}</td>
-      <td><button class="btn btn-red btn-sm" onclick="deleteDevice('${escH(d.deviceCode)}','${escH(d.name)}')">Remove</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function openAddDevice() {
-  document.getElementById('dev-code').value    = '';
-  document.getElementById('dev-name').value    = '';
-  document.getElementById('dev-apikey').value  = '';
-  document.getElementById('dev-save-hint').style.display = 'none';
-  document.getElementById('dev-save-btn').style.display  = 'inline-flex';
-  openModal('modal-add-device');
-}
-
-function genDevCode() {
-  document.getElementById('dev-code').value = 'CN-' + Math.random().toString(36).slice(2,6).toUpperCase();
-}
-
-function genDevApiKey() {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  document.getElementById('dev-apikey').value =
-    Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-async function submitAddDevice() {
-  const deviceCode = document.getElementById('dev-code').value.trim();
-  const name       = document.getElementById('dev-name').value.trim();
-  const apiKey     = document.getElementById('dev-apikey').value.trim();
-  if (!deviceCode || !name || !apiKey) { toast('All fields are required', 'err'); return; }
-
-  const res = await fetch('/api/devices', {
-    method: 'POST', headers: devHeaders(),
-    body: JSON.stringify({ deviceCode, name, apiKey })
-  });
-  if (res.status === 401) { toast('Invalid master key', 'err'); return; }
-  if (res.status === 409) { toast('Device code already exists', 'err'); return; }
-  if (!res.ok) { const t = await res.text(); toast('Registration failed: ' + t, 'err'); return; }
-
-  // Show one-time config hint with the URL and raw API key
-  document.getElementById('dev-hint-url').textContent = window.location.origin + '/api/sync';
-  document.getElementById('dev-hint-key').textContent = apiKey;
-  document.getElementById('dev-save-hint').style.display = 'block';
-  document.getElementById('dev-save-btn').style.display  = 'none';  // prevent double-submit
-
-  toast('Device registered', 'ok');
-  loadDevices();
-}
-
-async function deleteDevice(code, name) {
-  if (!confirm('Remove device "' + name + '" (' + code + ')?\nThis invalidates its API key and stops future syncs.')) return;
-  const res = await fetch('/api/devices/' + encodeURIComponent(code), {
-    method: 'DELETE', headers: { 'X-Master-Key': getMasterKey() }
-  });
-  if (!res.ok) { toast('Delete failed', 'err'); return; }
-  toast('Device removed', 'ok');
-  loadDevices();
-}
-
-function copyText(text) {
-  navigator.clipboard.writeText(text).then(() => toast('Copied', 'ok'));
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Boot
-// ─────────────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', initFirebase);
-</script>
+<!-- Socket.io -->
+<script src="/socket.io/socket.io.js"></script>
+<!-- App -->
+<script src="app.js"></script>
 </body>
 </html>

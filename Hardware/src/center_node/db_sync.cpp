@@ -1,4 +1,5 @@
 #include <WiFiClient.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <time.h>
@@ -67,11 +68,18 @@ static void syncToMongo()
         return;
     }
 
-    WiFiClient client;
+    bool isHttps = systemConfig.mongoUrl.startsWith("https://");
+    WiFiClient        plainClient;
+    WiFiClientSecure  secureClient;
     HTTPClient http;
+    if (isHttps) {
+        secureClient.setInsecure();   // skip CA verification — transport is still encrypted
+        http.begin(secureClient, systemConfig.mongoUrl);
+    } else {
+        http.begin(plainClient, systemConfig.mongoUrl);
+    }
     http.setConnectTimeout(5000);
     http.setTimeout(8000);
-    http.begin(client, systemConfig.mongoUrl);
     http.addHeader("Content-Type", "application/json");
     if (!systemConfig.mongoApiKey.isEmpty()) {
         http.addHeader("api-key", systemConfig.mongoApiKey);
@@ -114,17 +122,24 @@ static void syncToMongo()
     String body;
     serializeJson(doc, body);
     int code = http.POST(body);
-    http.end();
 
     if (code > 0 && code < 400) {
         g_syncLastOk   = true;
         g_syncLastTime = nowEpoch();
         s_lastSyncHash = hash;
         Serial.printf("[DB] Sync OK (HTTP %d)\n", code);
-    } else {
+    } else if (code > 0) {
+        // Server responded with an HTTP error — read body for the reason
         g_syncLastOk = false;
-        Serial.printf("[DB] Sync FAILED: %s\n", http.errorToString(code).c_str());
+        String resp = http.getString();
+        Serial.printf("[DB] Sync FAILED: HTTP %d — %s\n", code, resp.c_str());
+    } else {
+        // Transport / connection error (code is negative HTTPC_ERROR_*)
+        g_syncLastOk = false;
+        Serial.printf("[DB] Sync FAILED: %s (code %d)\n",
+                      http.errorToString(code).c_str(), code);
     }
+    http.end();
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────

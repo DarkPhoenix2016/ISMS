@@ -357,7 +357,7 @@ input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99
             <div class="sec-title">ISMS Web Portal Sync</div>
             <div class="ff s2" style="margin-bottom:14px">
               <label>Sync URL</label>
-              <input id="f-murl" placeholder="http://192.168.x.x:3000/api/sync">
+              <input id="f-murl" placeholder="https://your-domain.com/api/sync">
               <div class="hint">Web portal sync endpoint — register this node in the portal (Devices page) to get its URL and API key</div>
             </div>
             <div class="fgrid">
