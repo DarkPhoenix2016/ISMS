@@ -1,0 +1,432 @@
+#include <Arduino.h>
+#include <WiFi.h>
+#include <WebServer.h>
+#include <Preferences.h>
+#include <ArduinoJson.h>
+
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+/******** SENSOR PINS ********/
+
+#define MQ2_ANALOG_PIN 34
+#define MQ135_ANALOG_PIN 35
+#define ACS712_ANALOG_PIN 32
+#define PARTICLE_ANALOG_PIN 33
+
+#define DS18B20_PIN 4
+#define VIBRATION_PIN 27
+#define RELAY_PIN 26
+
+#define SENSOR_SUPPLY_VOLTAGE 5.0
+#define ADC_MAX_VALUE 4095.0
+
+/******** OBJECTS ********/
+
+WebServer server(80);
+Preferences prefs;
+
+OneWire oneWire(DS18B20_PIN);
+DallasTemperature temperatureSensor(&oneWire);
+
+/******** DEVICE CONFIG ********/
+
+struct DeviceConfig
+{
+  String factory;
+  String building;
+  String room;
+  String deviceCode;
+
+  bool standalone;
+
+  String wifiSSID;
+  String wifiPassword;
+
+  int readingDelay;
+  int sampleRate;
+  int preheatTime;
+
+} config;
+
+/******** SENSOR FLAGS ********/
+
+bool hasMQ2=false;
+bool hasMQ135=false;
+bool hasCurrent=false;
+bool hasTemp=false;
+bool hasParticle=false;
+bool hasVibration=false;
+
+/******** SENSOR VARIABLES ********/
+
+float mq2LoadResistance = 5.0;
+float mq135LoadResistance = 10.0;
+
+float mq2BaselineResistance = 10.0;
+float mq135BaselineResistance = 10.0;
+
+float currentSensorSensitivity = 0.066;
+float currentSensorZeroVoltage = 0;
+
+/******** SENSOR VALUES ********/
+
+float temperatureC=0;
+float mq2Ratio=0;
+float mq135Ratio=0;
+float currentAmp=0;
+int particleValue=0;
+bool vibration=false;
+
+/******** SENSOR DETECTION ********/
+
+void detectSensors()
+{
+  Serial.println("Detecting sensors...");
+
+  if(analogRead(MQ2_ANALOG_PIN)>10) hasMQ2=true;
+  if(analogRead(MQ135_ANALOG_PIN)>10) hasMQ135=true;
+  if(analogRead(ACS712_ANALOG_PIN)>10) hasCurrent=true;
+  if(analogRead(PARTICLE_ANALOG_PIN)>10) hasParticle=true;
+
+  temperatureSensor.begin();
+  if(temperatureSensor.getDeviceCount()>0) hasTemp=true;
+
+  pinMode(VIBRATION_PIN,INPUT);
+  hasVibration=true;
+
+  Serial.println("Sensor Detection Completed");
+}
+
+/******** RESISTANCE CALCULATION ********/
+
+float calculateSensorResistance(int pin,float loadResistance)
+{
+  float rs=0;
+
+  for(int i=0;i<config.sampleRate;i++)
+  {
+    int value=analogRead(pin);
+
+    float voltage=value*(SENSOR_SUPPLY_VOLTAGE/ADC_MAX_VALUE);
+
+    if(voltage<=0) voltage=0.0001;
+
+    float resistance=((SENSOR_SUPPLY_VOLTAGE-voltage)/voltage)*loadResistance;
+
+    rs+=resistance;
+
+    delay(10);
+  }
+
+  return rs/config.sampleRate;
+}
+
+/******** CALIBRATION ********/
+
+float calibrateSensor(int pin,float loadResistance,float cleanAirFactor)
+{
+  float sum=0;
+
+  for(int i=0;i<50;i++)
+  {
+    sum+=calculateSensorResistance(pin,loadResistance);
+    delay(100);
+  }
+
+  float avg=sum/50;
+
+  return avg/cleanAirFactor;
+}
+
+/******** CURRENT SENSOR ********/
+
+void calibrateCurrentSensor()
+{
+  float sum=0;
+
+  for(int i=0;i<200;i++)
+  {
+    int val=analogRead(ACS712_ANALOG_PIN);
+
+    float voltage=val*(3.3/ADC_MAX_VALUE);
+
+    sum+=voltage;
+
+    delay(5);
+  }
+
+  currentSensorZeroVoltage=sum/200;
+}
+
+float readCurrent()
+{
+  float sum=0;
+
+  for(int i=0;i<50;i++)
+  {
+    int val=analogRead(ACS712_ANALOG_PIN);
+
+    float voltage=val*(3.3/ADC_MAX_VALUE);
+
+    sum+=voltage;
+
+    delay(2);
+  }
+
+  float avg=sum/50;
+
+  float current=(avg-currentSensorZeroVoltage)/currentSensorSensitivity;
+
+  if(abs(current)<0.1) current=0;
+
+  return current;
+}
+
+/******** READ ALL SENSORS ********/
+
+void readSensors()
+{
+  if(hasTemp)
+  {
+    temperatureSensor.requestTemperatures();
+    temperatureC=temperatureSensor.getTempCByIndex(0);
+  }
+
+  if(hasMQ2)
+  {
+    float rs=calculateSensorResistance(MQ2_ANALOG_PIN,mq2LoadResistance);
+    mq2Ratio=rs/mq2BaselineResistance;
+  }
+
+  if(hasMQ135)
+  {
+    float rs=calculateSensorResistance(MQ135_ANALOG_PIN,mq135LoadResistance);
+    mq135Ratio=rs/mq135BaselineResistance;
+  }
+
+  if(hasCurrent)
+  currentAmp=readCurrent();
+
+  if(hasParticle)
+  particleValue=analogRead(PARTICLE_ANALOG_PIN);
+
+  if(hasVibration)
+  vibration=digitalRead(VIBRATION_PIN);
+}
+
+/******** LOAD CONFIG ********/
+
+void loadConfig()
+{
+  prefs.begin("config",true);
+
+  config.factory=prefs.getString("factory","");
+  config.building=prefs.getString("building","");
+  config.room=prefs.getString("room","");
+  config.deviceCode=prefs.getString("device","");
+
+  config.standalone=prefs.getBool("mode",true);
+
+  config.wifiSSID=prefs.getString("ssid","");
+  config.wifiPassword=prefs.getString("pass","");
+
+  config.readingDelay=prefs.getInt("delay",500);
+  config.sampleRate=prefs.getInt("sample",10);
+  config.preheatTime=prefs.getInt("preheat",30);
+
+  prefs.end();
+}
+
+/******** SAVE CONFIG ********/
+
+void saveConfig()
+{
+  prefs.begin("config",false);
+
+  prefs.putString("factory",config.factory);
+  prefs.putString("building",config.building);
+  prefs.putString("room",config.room);
+  prefs.putString("device",config.deviceCode);
+
+  prefs.putBool("mode",config.standalone);
+
+  prefs.putString("ssid",config.wifiSSID);
+  prefs.putString("pass",config.wifiPassword);
+
+  prefs.putInt("delay",config.readingDelay);
+  prefs.putInt("sample",config.sampleRate);
+  prefs.putInt("preheat",config.preheatTime);
+
+  prefs.end();
+}
+
+/******** DASHBOARD PAGE ********/
+
+void handleRoot()
+{
+  String page="<html><body>";
+
+  page+="<h2>Sensor Node Dashboard</h2>";
+
+  page+="Temperature: "+String(temperatureC)+" C<br>";
+  page+="Current: "+String(currentAmp)+" A<br>";
+
+  page+="MQ2 Ratio: "+String(mq2Ratio)+"<br>";
+  page+="MQ135 Ratio: "+String(mq135Ratio)+"<br>";
+
+  page+="Particles: "+String(particleValue)+"<br>";
+
+  page+="Vibration: "+String(vibration)+"<br>";
+
+  page+="<br><a href='/config'>Config</a>";
+
+  page+="</body></html>";
+
+  server.send(200,"text/html",page);
+}
+
+/******** CONFIG PAGE ********/
+
+void handleConfig()
+{
+  String page="<html><body>";
+
+  page+="<h2>Configuration</h2>";
+
+  page+="<form action='/save'>";
+
+  page+="Factory:<input name='factory'><br>";
+  page+="Building:<input name='building'><br>";
+  page+="Room:<input name='room'><br>";
+  page+="Device Code:<input name='device'><br>";
+
+  page+="Mode:<select name='mode'><option value='1'>Standalone</option><option value='0'>Node</option></select><br>";
+
+  page+="WiFi SSID:<input name='ssid'><br>";
+  page+="WiFi Password:<input name='pass'><br>";
+
+  page+="Reading Delay(ms):<input name='delay'><br>";
+  page+="Sample Rate:<input name='sample'><br>";
+  page+="Preheat Time(s):<input name='preheat'><br>";
+
+  page+="<input type='submit'></form>";
+
+  page+="</body></html>";
+
+  server.send(200,"text/html",page);
+}
+
+/******** SAVE HANDLER ********/
+
+void handleSave()
+{
+  config.factory=server.arg("factory");
+  config.building=server.arg("building");
+  config.room=server.arg("room");
+  config.deviceCode=server.arg("device");
+
+  config.standalone=server.arg("mode")=="1";
+
+  config.wifiSSID=server.arg("ssid");
+  config.wifiPassword=server.arg("pass");
+
+  config.readingDelay=server.arg("delay").toInt();
+  config.sampleRate=server.arg("sample").toInt();
+  config.preheatTime=server.arg("preheat").toInt();
+
+  saveConfig();
+
+  server.send(200,"text/html","Saved. Rebooting...");
+  delay(2000);
+  ESP.restart();
+}
+
+/******** WIFI SETUP ********/
+
+void startStandalone()
+{
+  String ssid="SensorKit-"+config.deviceCode;
+
+  WiFi.softAP(ssid.c_str(),"12345678");
+
+  Serial.println("Hotspot Started");
+  Serial.println(WiFi.softAPIP());
+}
+
+void startNodeMode()
+{
+  WiFi.begin(config.wifiSSID.c_str(),config.wifiPassword.c_str());
+
+  Serial.print("Connecting WiFi");
+
+  while(WiFi.status()!=WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println();
+  Serial.println("Connected");
+
+  Serial.println(WiFi.localIP());
+}
+
+/******** WEB SERVER ********/
+
+void startServer()
+{
+  server.on("/",handleRoot);
+  server.on("/config",handleConfig);
+  server.on("/save",handleSave);
+
+  server.begin();
+}
+
+/******** SETUP ********/
+
+void setup()
+{
+  Serial.begin(115200);
+
+  loadConfig();
+
+  detectSensors();
+
+  if(config.factory=="")
+  {
+    WiFi.softAP("SensorKit-Setup","12345678");
+  }
+  else
+  {
+    if(config.standalone)
+    startStandalone();
+    else
+    startNodeMode();
+  }
+
+  startServer();
+
+  Serial.println("Preheating sensors...");
+  delay(config.preheatTime*1000);
+
+  if(hasMQ2)
+  mq2BaselineResistance=calibrateSensor(MQ2_ANALOG_PIN,mq2LoadResistance,9.83);
+
+  if(hasMQ135)
+  mq135BaselineResistance=calibrateSensor(MQ135_ANALOG_PIN,mq135LoadResistance,3.6);
+
+  if(hasCurrent)
+  calibrateCurrentSensor();
+}
+
+/******** LOOP ********/
+
+void loop()
+{
+  server.handleClient();
+
+  readSensors();
+
+  delay(config.readingDelay);
+}
