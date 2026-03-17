@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ISMS Portal</title>
+<title>SIMEMS Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -300,6 +300,10 @@ tbody tr:hover td{background:var(--raised)}
           Reports
         </div>
         <div class="sb-sect">System</div>
+        <div class="ni" onclick="navTo('devices',this)" data-page="devices">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3h-8M12 3v4M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg>
+          Devices
+        </div>
         <div class="ni" onclick="navTo('settings',this)" data-page="settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
           Settings
@@ -570,6 +574,50 @@ tbody tr:hover td{background:var(--raised)}
           </div>
         </div>
 
+        <!-- ── Devices ── -->
+        <div class="page" id="page-devices">
+          <div class="page-hd">
+            <div><div class="page-title">Device Registry</div><div class="page-sub">Registered center nodes and their sync API keys</div></div>
+            <button class="btn btn-acc" onclick="openAddDevice()">+ Register Device</button>
+          </div>
+
+          <!-- Master key unlock bar (shown when server has MASTER_KEY set) -->
+          <div id="dev-keybar" style="display:none" class="settings-card">
+            <div class="settings-hd">Management Key Required</div>
+            <div class="settings-body">
+              <p style="font-size:13px;color:var(--ts);margin-bottom:12px">Enter the <code>MASTER_KEY</code> from your <code>.env</code> file to manage devices.</p>
+              <div style="display:flex;gap:10px;align-items:end;max-width:480px">
+                <div class="ff" style="flex:1"><label>Master Key</label><input type="password" id="dev-masterkey-input" placeholder="Paste MASTER_KEY here" onkeydown="if(event.key==='Enter')setMasterKey()"></div>
+                <button class="btn btn-acc" onclick="setMasterKey()">Unlock</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sync endpoint info bar -->
+          <div class="settings-card">
+            <div class="settings-hd">Sync Endpoint</div>
+            <div class="settings-body">
+              <p style="font-size:13px;color:var(--ts);margin-bottom:10px">Configure your center nodes to POST sensor data to this URL instead of directly to MongoDB. Each node uses its own API key.</p>
+              <div style="display:flex;align-items:center;gap:10px;background:var(--raised);border-radius:8px;padding:10px 14px">
+                <code id="dev-sync-url" style="font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></code>
+                <button class="btn btn-out btn-sm" onclick="copyText(document.getElementById('dev-sync-url').textContent)">Copy</button>
+              </div>
+              <p style="font-size:11px;color:var(--ts);margin-top:8px">On each center node: Dashboard → Device Management → Database → set Sync URL and API Key, then save.</p>
+            </div>
+          </div>
+
+          <!-- Device list -->
+          <div class="settings-card">
+            <div class="settings-hd">Registered Devices <span id="dev-count" style="font-weight:400;color:var(--ts);font-size:13px"></span></div>
+            <div class="settings-body" style="padding:0">
+              <table class="tbl" style="width:100%">
+                <thead><tr><th>Device Code</th><th>Name</th><th>Registered</th><th>Last Sync</th><th>Status</th><th></th></tr></thead>
+                <tbody id="dev-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--ts)">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -666,6 +714,62 @@ tbody tr:hover td{background:var(--raised)}
     <div class="modal-ft">
       <button class="btn btn-out" onclick="closeModal('modal-confirm')">Cancel</button>
       <button class="btn btn-red" id="confirm-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Device Modal -->
+<div class="modal-bg" id="modal-add-device">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hd">
+      <div class="modal-title">Register Center Node</div>
+      <button class="modal-close" onclick="closeModal('modal-add-device')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="fgrid">
+        <div class="ff s2">
+          <label>Device Code</label>
+          <div style="display:flex;gap:8px">
+            <input id="dev-code" placeholder="e.g. CN-001" style="flex:1">
+            <button class="btn btn-out btn-sm" onclick="genDevCode()">Generate</button>
+          </div>
+          <div class="hint">Unique short identifier for this center node</div>
+        </div>
+        <div class="ff s2">
+          <label>Node Name</label>
+          <input id="dev-name" placeholder="e.g. Building A — Center Node">
+        </div>
+        <div class="ff s2">
+          <label>API Key</label>
+          <div style="display:flex;gap:8px">
+            <input id="dev-apikey" placeholder="Click Generate or paste a custom key" style="flex:1;font-family:var(--mono);font-size:12px">
+            <button class="btn btn-out btn-sm" onclick="genDevApiKey()">Generate</button>
+          </div>
+          <div class="hint" style="color:#dc2626;font-weight:500">Copy this key now — it will NOT be shown again after saving.</div>
+        </div>
+      </div>
+      <!-- Config hint shown after successful save -->
+      <div id="dev-save-hint" style="display:none;margin-top:16px;background:var(--raised);border-radius:8px;padding:14px">
+        <div style="font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span style="color:#16a34a">&#10003;</span> Device registered — copy these into the center node config
+        </div>
+        <div style="display:grid;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--ts);width:70px;flex-shrink:0">Sync URL</span>
+            <code id="dev-hint-url" style="font-size:12px;background:#0f172a;padding:4px 8px;border-radius:4px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></code>
+            <button class="btn btn-out btn-sm" onclick="copyText(document.getElementById('dev-hint-url').textContent)">Copy</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--ts);width:70px;flex-shrink:0">API Key</span>
+            <code id="dev-hint-key" style="font-size:12px;background:#0f172a;padding:4px 8px;border-radius:4px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></code>
+            <button class="btn btn-out btn-sm" onclick="copyText(document.getElementById('dev-hint-key').textContent)">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-out" onclick="closeModal('modal-add-device')">Close</button>
+      <button class="btn btn-acc" id="dev-save-btn" onclick="submitAddDevice()">Register</button>
     </div>
   </div>
 </div>
@@ -824,6 +928,7 @@ const PAGE_TITLES = {
   incidents: 'Incidents',
   readings:  'Readings',
   reports:   'Reports',
+  devices:   'Device Registry',
   settings:  'Settings'
 };
 
@@ -843,6 +948,7 @@ function navTo(page, el) {
     nodes:     loadNodes,
     readings:  loadReadings,
     incidents: loadIncidents,
+    devices:   loadDevices,
     settings:  loadSettings
   };
   if (loaders[page]) loaders[page]();
@@ -1675,6 +1781,127 @@ function downloadCSV(rows, filename) {
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
   a.download = filename;
   a.click();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Device Registry
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getMasterKey() { return sessionStorage.getItem('isms_master_key') || ''; }
+
+function setMasterKey() {
+  const key = document.getElementById('dev-masterkey-input').value.trim();
+  if (!key) return;
+  sessionStorage.setItem('isms_master_key', key);
+  document.getElementById('dev-keybar').style.display = 'none';
+  loadDevices();
+}
+
+function devHeaders() {
+  return { 'Content-Type': 'application/json', 'X-Master-Key': getMasterKey() };
+}
+
+async function loadDevices() {
+  // Show the sync endpoint URL in the info bar
+  document.getElementById('dev-sync-url').textContent = window.location.origin + '/api/sync';
+
+  try {
+    const res = await fetch('/api/devices', { headers: { 'X-Master-Key': getMasterKey() } });
+    if (res.status === 401) {
+      document.getElementById('dev-keybar').style.display = 'block';
+      document.getElementById('dev-tbody').innerHTML =
+        '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--ts)">Enter master key to view devices.</td></tr>';
+      return;
+    }
+    document.getElementById('dev-keybar').style.display = 'none';
+    const devices = await res.json();
+    renderDevices(devices);
+  } catch (e) {
+    document.getElementById('dev-tbody').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;padding:24px;color:#dc2626">Failed to load devices: ' + e.message + '</td></tr>';
+  }
+}
+
+function renderDevices(devices) {
+  const cnt = document.getElementById('dev-count');
+  if (cnt) cnt.textContent = '— ' + devices.length + ' device' + (devices.length !== 1 ? 's' : '');
+
+  const tbody = document.getElementById('dev-tbody');
+  if (!devices.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--ts)">No devices registered yet. Click <strong>+ Register Device</strong> to add one.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = devices.map(d => {
+    const statusDot = d.active
+      ? '<span style="color:#16a34a;font-weight:600">&#9679; Active</span>'
+      : '<span style="color:var(--ts)">&#9679; Inactive</span>';
+    return `<tr>
+      <td><code style="font-size:12px">${escH(d.deviceCode)}</code></td>
+      <td>${escH(d.name)}</td>
+      <td style="font-size:12px;color:var(--ts)">${fmtTime(d.createdAt)}</td>
+      <td style="font-size:12px;color:var(--ts)">${d.lastSync ? fmtAgo(d.lastSync) + ' ago' : 'Never'}</td>
+      <td style="font-size:12px">${statusDot}</td>
+      <td><button class="btn btn-red btn-sm" onclick="deleteDevice('${escH(d.deviceCode)}','${escH(d.name)}')">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddDevice() {
+  document.getElementById('dev-code').value    = '';
+  document.getElementById('dev-name').value    = '';
+  document.getElementById('dev-apikey').value  = '';
+  document.getElementById('dev-save-hint').style.display = 'none';
+  document.getElementById('dev-save-btn').style.display  = 'inline-flex';
+  openModal('modal-add-device');
+}
+
+function genDevCode() {
+  document.getElementById('dev-code').value = 'CN-' + Math.random().toString(36).slice(2,6).toUpperCase();
+}
+
+function genDevApiKey() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  document.getElementById('dev-apikey').value =
+    Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function submitAddDevice() {
+  const deviceCode = document.getElementById('dev-code').value.trim();
+  const name       = document.getElementById('dev-name').value.trim();
+  const apiKey     = document.getElementById('dev-apikey').value.trim();
+  if (!deviceCode || !name || !apiKey) { toast('All fields are required', 'err'); return; }
+
+  const res = await fetch('/api/devices', {
+    method: 'POST', headers: devHeaders(),
+    body: JSON.stringify({ deviceCode, name, apiKey })
+  });
+  if (res.status === 401) { toast('Invalid master key', 'err'); return; }
+  if (res.status === 409) { toast('Device code already exists', 'err'); return; }
+  if (!res.ok) { const t = await res.text(); toast('Registration failed: ' + t, 'err'); return; }
+
+  // Show one-time config hint with the URL and raw API key
+  document.getElementById('dev-hint-url').textContent = window.location.origin + '/api/sync';
+  document.getElementById('dev-hint-key').textContent = apiKey;
+  document.getElementById('dev-save-hint').style.display = 'block';
+  document.getElementById('dev-save-btn').style.display  = 'none';  // prevent double-submit
+
+  toast('Device registered', 'ok');
+  loadDevices();
+}
+
+async function deleteDevice(code, name) {
+  if (!confirm('Remove device "' + name + '" (' + code + ')?\nThis invalidates its API key and stops future syncs.')) return;
+  const res = await fetch('/api/devices/' + encodeURIComponent(code), {
+    method: 'DELETE', headers: { 'X-Master-Key': getMasterKey() }
+  });
+  if (!res.ok) { toast('Delete failed', 'err'); return; }
+  toast('Device removed', 'ok');
+  loadDevices();
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => toast('Copied', 'ok'));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

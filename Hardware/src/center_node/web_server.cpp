@@ -52,7 +52,7 @@ static const char DASHBOARD_HTML[] PROGMEM = R"rawliteral(
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ISMS Central Node</title>
+<title>SIMEM Central Node</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -354,14 +354,14 @@ input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99
 
           <!-- Database -->
           <div class="cpanel" id="cp-db">
-            <div class="sec-title">MongoDB Connection</div>
+            <div class="sec-title">ISMS Web Portal Sync</div>
             <div class="ff s2" style="margin-bottom:14px">
-              <label>REST Bridge URL</label>
-              <input id="f-murl" placeholder="http://your-server/api/insertOne">
-              <div class="hint">POST endpoint that accepts {database, collection, document} — e.g. MongoDB Atlas Data API or a custom bridge</div>
+              <label>Sync URL</label>
+              <input id="f-murl" placeholder="http://192.168.x.x:3000/api/sync">
+              <div class="hint">Web portal sync endpoint — register this node in the portal (Devices page) to get its URL and API key</div>
             </div>
             <div class="fgrid">
-              <div class="ff"><label>API Key (optional)</label><input type="password" id="f-mkey" placeholder="(leave blank to keep current)"></div>
+              <div class="ff"><label>API Key</label><input type="password" id="f-mkey" placeholder="(leave blank to keep current)"></div>
               <div class="ff"><label>Database Name</label><input id="f-mdb" placeholder="isms_db"></div>
               <div class="ff"><label>Collection Name</label><input id="f-mcol" placeholder="sensor_readings"></div>
               <div class="ff"><label>Sync Interval (seconds)</label><input type="number" id="f-sint" min="5" max="3600" placeholder="30"></div>
@@ -369,9 +369,9 @@ input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99
             <div class="sec-title">Sync Control</div>
             <div class="frow">
               <input type="checkbox" id="f-son">
-              <label for="f-son">Enable automatic synchronisation to MongoDB</label>
+              <label for="f-son">Enable automatic synchronisation</label>
             </div>
-            <div class="hint" style="padding-left:25px;margin-top:4px">When enabled, all node readings are pushed to the database at the configured interval</div>
+            <div class="hint" style="padding-left:25px;margin-top:4px">When enabled, all node readings are pushed to the web portal at the configured interval</div>
           </div>
 
           <!-- Security -->
@@ -782,8 +782,8 @@ static void handleLogin()
     if (user == systemConfig.webUsername && pass == systemConfig.webPassword) {
         char buf[24];
         snprintf(buf, sizeof(buf), "%08" PRIx32 "%08" PRIx32,
-                 (uint32_t)(ESP.getEfuseMac() >> 32),
-                 (uint32_t)millis());
+                (uint32_t)(ESP.getEfuseMac() >> 32),
+                (uint32_t)millis());
         s_sessionToken  = String(buf);
         s_sessionExpiry = millis() + SESSION_MS;  // S4: start expiry window
         String resp = "{\"token\":\"" + s_sessionToken + "\"}";
