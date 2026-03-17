@@ -180,9 +180,9 @@ app.get('/api/devices', requireMasterKey, async (_req, res) => {
 });
 
 // POST /api/devices  — register a new device
-// Body: { deviceCode, name, apiKey }
+// Body: { deviceCode, name, apiKey, location?: {factory,building,room} }
 app.post('/api/devices', requireMasterKey, async (req, res) => {
-  const { deviceCode, name, apiKey } = req.body || {};
+  const { deviceCode, name, apiKey, location } = req.body || {};
   if (!deviceCode || !name || !apiKey)
     return res.status(400).json({ error: 'deviceCode, name, and apiKey are required' });
   try {
@@ -193,12 +193,32 @@ app.post('/api/devices', requireMasterKey, async (req, res) => {
     await db.collection('devices').insertOne({
       deviceCode,
       name,
-      apiKeyHash: sha256(apiKey),   // only the hash is stored
+      location:   location || { factory: '', building: '', room: '' },
+      apiKeyHash: sha256(apiKey),
       createdAt:  Math.floor(Date.now() / 1000),
       lastSync:   null,
       active:     true
     });
     console.log(`[DEVICES] Registered: ${name} (${deviceCode})`);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// PUT /api/devices/:code  — update device name, location, or rotate API key
+// Body: { name?, location?: {factory,building,room}, newApiKey? }
+app.put('/api/devices/:code', requireMasterKey, async (req, res) => {
+  const { name, location, newApiKey } = req.body || {};
+  const set = {};
+  if (name)        set.name     = name;
+  if (location)    set.location = location;
+  if (newApiKey)   set.apiKeyHash = sha256(newApiKey);
+  if (!Object.keys(set).length)
+    return res.status(400).json({ error: 'Nothing to update' });
+  try {
+    const db     = await getDb(MONGO_DB);
+    const result = await db.collection('devices').updateOne({ deviceCode: req.params.code }, { $set: set });
+    if (result.matchedCount === 0) return res.status(404).json({ error: 'Device not found' });
+    console.log(`[DEVICES] Updated: ${req.params.code}`);
     res.json({ ok: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

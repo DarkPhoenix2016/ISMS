@@ -1005,7 +1005,7 @@ function _rdRenderCenters(centers) {
         <td class="mono td-dim" style="font-size:11px">${fmtTime(c.lastSync)}</td>
         <td class="mono">${c.nodeCount ?? '—'}</td>
         <td class="mono">${c.recordCount ?? '—'}</td>
-        <td><button class="btn btn-acc btn-sm" onclick="rdDrillCenter(${JSON.stringify(c.centerId)})">View →</button></td>
+        <td><button class="btn btn-acc btn-sm" onclick='rdDrillCenter("${escH(c.centerId)}")'>View →</button></td>
       </tr>`;
     }).join('');
   }
@@ -1077,7 +1077,7 @@ function _rdRenderNodes(data) {
       <td class="mono td-dim" style="font-size:11px">${fmtTime(n.lastSeen)}</td>
       <td class="mono">${n.sensorCount ?? '—'}</td>
       <td>${n.online ? '<span class="badge b-online">ONLINE</span>' : '<span class="badge b-offline">OFFLINE</span>'}</td>
-      <td><button class="btn btn-acc btn-sm" onclick="rdDrillNode(${JSON.stringify(n.nodeId)},${JSON.stringify(n.hostname||n.nodeId)})">View →</button></td>
+      <td><button class="btn btn-acc btn-sm" onclick='rdDrillNode("${escH(n.nodeId)}","${escH(n.hostname||n.nodeId)}")'>View →</button></td>
     </tr>`).join('');
   }
   mkPager('pager-rd-nodes', rdState.nodes, data.nodes.length, () => _rdRenderNodes(rdState._centerData));
@@ -1587,31 +1587,71 @@ function renderDevices(devices) {
 
   const tbody = document.getElementById('dev-tbody');
   if (!devices.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--ts)">No devices registered yet. Click <strong>+ Register Device</strong> to add one.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ts)">No devices registered yet. Click <strong>+ Register Device</strong> to add one.</td></tr>';
     return;
   }
   tbody.innerHTML = devices.map(d => {
     const statusDot = d.active
       ? '<span style="color:#16a34a;font-weight:600"><span style="font-size:1.2em;vertical-align:middle;margin-right:4px">●</span>Active</span>'
       : '<span style="color:var(--ts)"><span style="font-size:1.2em;vertical-align:middle;margin-right:4px">●</span>Inactive</span>';
+    const loc = d.location ? [d.location.factory, d.location.building, d.location.room].filter(Boolean).join(' / ') : '—';
     return `<tr>
       <td><code style="font-size:12px">${escH(d.deviceCode)}</code></td>
-      <td>${escH(d.name)}</td>
+      <td><strong>${escH(d.name)}</strong></td>
+      <td style="font-size:12px;color:var(--ts)">${escH(loc)}</td>
       <td style="font-size:12px;color:var(--ts)">${fmtTime(d.createdAt)}</td>
       <td style="font-size:12px;color:var(--ts)">${d.lastSync ? fmtAgo(d.lastSync) + ' ago' : 'Never'}</td>
       <td style="font-size:12px">${statusDot}</td>
-      <td><button class="btn btn-red btn-sm" onclick="deleteDevice('${escH(d.deviceCode)}','${escH(d.name)}')">Remove</button></td>
+      <td>
+        <button class="btn-ghost btn-sm" onclick="editDevice('${escH(d.deviceCode)}')">Edit</button>
+        <button class="btn-ghost btn-sm" style="color:var(--red)" onclick="deleteDevice('${escH(d.deviceCode)}','${escH(d.name)}')">Del</button>
+      </td>
     </tr>`;
   }).join('');
 }
 
 function openAddDevice() {
+  document.getElementById('dev-edit-mode').value = "0";
+  document.getElementById('modal-inc-title').textContent = 'Register Device'; // Using same modal title id if generic
   document.getElementById('dev-code').value    = '';
+  document.getElementById('dev-code').disabled = false;
+  document.getElementById('dev-gen-code-btn').style.display = 'inline-flex';
   document.getElementById('dev-name').value    = '';
+  document.getElementById('dev-factory').value = '';
+  document.getElementById('dev-building').value = '';
+  document.getElementById('dev-room').value    = '';
   document.getElementById('dev-apikey').value  = '';
+  document.getElementById('dev-key-lbl').textContent = 'API Key';
+  document.getElementById('dev-key-hint').style.display = 'none';
+  document.getElementById('dev-save-btn').textContent = 'Register Device';
   document.getElementById('dev-save-hint').style.display = 'none';
   document.getElementById('dev-save-btn').style.display  = 'inline-flex';
   openModal('modal-add-device');
+}
+
+async function editDevice(code) {
+  try {
+    const res = await fetch('/api/devices', { headers: { 'X-Master-Key': getMasterKey() } });
+    const devices = await res.json();
+    const d = devices.find(x => x.deviceCode === code);
+    if (!d) return;
+
+    document.getElementById('dev-edit-mode').value = "1";
+    document.getElementById('dev-code').value = d.deviceCode;
+    document.getElementById('dev-code').disabled = true;
+    document.getElementById('dev-gen-code-btn').style.display = 'none';
+    document.getElementById('dev-name').value = d.name || '';
+    document.getElementById('dev-factory').value = d.location?.factory || '';
+    document.getElementById('dev-building').value = d.location?.building || '';
+    document.getElementById('dev-room').value = d.location?.room || '';
+    document.getElementById('dev-apikey').value = '';
+    document.getElementById('dev-key-lbl').textContent = 'New API Key (optional)';
+    document.getElementById('dev-key-hint').style.display = 'block';
+    document.getElementById('dev-save-btn').textContent = 'Update Device';
+    document.getElementById('dev-save-hint').style.display = 'none';
+    document.getElementById('dev-save-btn').style.display = 'inline-flex';
+    openModal('modal-add-device');
+  } catch (e) { toast(e.message, 'err'); }
 }
 
 function genDevCode() {
@@ -1626,26 +1666,48 @@ function genDevApiKey() {
 }
 
 async function submitAddDevice() {
+  const isEdit     = document.getElementById('dev-edit-mode').value === "1";
   const deviceCode = document.getElementById('dev-code').value.trim();
   const name       = document.getElementById('dev-name').value.trim();
   const apiKey     = document.getElementById('dev-apikey').value.trim();
-  if (!deviceCode || !name || !apiKey) { toast('All fields are required', 'err'); return; }
+  const location   = {
+    factory:  document.getElementById('dev-factory').value.trim(),
+    building: document.getElementById('dev-building').value.trim(),
+    room:     document.getElementById('dev-room').value.trim()
+  };
 
-  const res = await fetch('/api/devices', {
-    method: 'POST', headers: devHeaders(),
-    body: JSON.stringify({ deviceCode, name, apiKey })
+  if (!deviceCode || !name) { toast('Code and Name are required', 'err'); return; }
+  if (!isEdit && !apiKey) { toast('API Key is required for new registration', 'err'); return; }
+
+  const method = isEdit ? 'PUT' : 'POST';
+  const url    = isEdit ? `/api/devices/${encodeURIComponent(deviceCode)}` : '/api/devices';
+  
+  const body = { name, location };
+  if (apiKey) {
+    if (isEdit) body.newApiKey = apiKey;
+    else body.apiKey = apiKey;
+  }
+  if (!isEdit) body.deviceCode = deviceCode;
+
+  const res = await fetch(url, {
+    method, headers: devHeaders(),
+    body: JSON.stringify(body)
   });
+  
   if (res.status === 401) { toast('Invalid master key', 'err'); return; }
   if (res.status === 409) { toast('Device code already exists', 'err'); return; }
-  if (!res.ok) { const t = await res.text(); toast('Registration failed: ' + t, 'err'); return; }
+  if (!res.ok) { const t = await res.text(); toast('Failed: ' + t, 'err'); return; }
 
-  // Show one-time config hint with the URL and raw API key
-  document.getElementById('dev-hint-url').textContent = window.location.origin + '/api/sync';
-  document.getElementById('dev-hint-key').textContent = apiKey;
-  document.getElementById('dev-save-hint').style.display = 'block';
-  document.getElementById('dev-save-btn').style.display  = 'none';  // prevent double-submit
+  if (!isEdit && apiKey) {
+    document.getElementById('dev-hint-url').textContent = window.location.origin + '/api/sync';
+    document.getElementById('dev-hint-key').textContent = apiKey;
+    document.getElementById('dev-save-hint').style.display = 'block';
+    document.getElementById('dev-save-btn').style.display  = 'none';
+  } else {
+    closeModal('modal-add-device');
+  }
 
-  toast('Device registered', 'ok');
+  toast(isEdit ? 'Device updated' : 'Device registered', 'ok');
   loadDevices();
 }
 

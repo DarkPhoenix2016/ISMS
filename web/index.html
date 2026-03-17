@@ -487,8 +487,8 @@
             <div class="settings-hd">Registered Devices <span id="dev-count" style="font-weight:400;color:var(--ts);font-size:13px"></span></div>
             <div class="settings-body" style="padding:0">
               <table class="tbl" style="width:100%">
-                <thead><tr><th>Device Code</th><th>Name</th><th>Registered</th><th>Last Sync</th><th>Status</th><th></th></tr></thead>
-                <tbody id="dev-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--ts)">Loading...</td></tr></tbody>
+                <thead><tr><th>Device Code</th><th>Name</th><th>Location</th><th>Registered</th><th>Last Sync</th><th>Status</th><th></th></tr></thead>
+                <tbody id="dev-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--ts)">Loading...</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -596,10 +596,10 @@
 
 <!-- Add Device Modal -->
 <div class="modal-bg" id="modal-add-device">
-  <div class="modal" style="max-width:520px">
+  <div class="modal" style="max-width:560px">
     <div class="modal-hd">
       <div class="modal-title">Register Center Node</div>
-      <button class="modal-close" onclick="closeModal('modal-add-device')"><i data-lucide="x"></i></button>
+      <button class="modal-close" onclick="closeModal('modal-add-device')">&times;</button>
     </div>
     <div class="modal-body">
       <div class="fgrid">
@@ -614,6 +614,18 @@
         <div class="ff s2">
           <label>Node Name</label>
           <input id="dev-name" placeholder="e.g. Building A — Center Node">
+        </div>
+        <div class="ff">
+          <label>Factory</label>
+          <input id="dev-factory" placeholder="e.g. Main Plant">
+        </div>
+        <div class="ff">
+          <label>Building</label>
+          <input id="dev-building" placeholder="e.g. Block A">
+        </div>
+        <div class="ff">
+          <label>Room / Zone</label>
+          <input id="dev-room" placeholder="e.g. Production Floor">
         </div>
         <div class="ff s2">
           <label>API Key</label>
